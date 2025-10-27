@@ -28,12 +28,30 @@ db.connect((err) => {
   console.log('Successfully connected to MySQL database');
 });
 
+// Import Routes
+const authRoutes = require('./routes/auth');
+const needsRoutes = require('./routes/needs');
+const basketRoutes = require('./routes/basket');
+const fundingRoutes = require('./routes/funding');
+
 // Routes
 
 // Test route to verify backend is running
 app.get('/api/test', (req, res) => {
   res.json({ message: 'Backend is working!' });
 });
+
+// Authentication routes
+app.use('/api/auth', authRoutes);
+
+// Needs routes
+app.use('/api/needs', needsRoutes);
+
+// Basket routes
+app.use('/api/basket', basketRoutes);
+
+// Funding routes
+app.use('/api/funding', fundingRoutes);
 
 // Server Configuration
 const PORT = process.env.PORT || 5000;

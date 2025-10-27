@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Needs Connect - API Tester</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            max-width: 600px;
+            width: 100%;
+            padding: 30px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .test-section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .test-section h2 {
+            color: #444;
+            font-size: 18px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .test-section h2::before {
+            margin-right: 8px;
+        }
+
+        .test-section.auth h2::before { content: "🔐"; }
+        .test-section.create h2::before { content: "➕"; }
+        .test-section.get-all h2::before { content: "📋"; }
+        .test-section.get-one h2::before { content: "🔍"; }
+        .test-section.update h2::before { content: "✏️"; }
+        .test-section.delete h2::before { content: "🗑️"; }
+        .test-section.basket-add h2::before { content: "🛒"; }
+        .test-section.basket-get h2::before { content: "🧺"; }
+        .test-section.basket-update h2::before { content: "🔄"; }
+        .test-section.basket-remove h2::before { content: "❌"; }
+        .test-section.basket-clear h2::before { content: "🧹"; }
+        .test-section.checkout h2::before { content: "💳"; }
+        .test-section.funding-user h2::before { content: "📜"; }
+        .test-section.funding-all h2::before { content: "💰"; }
+        .test-section.funding-need h2::before { content: "📊"; }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            color: #555;
+            font-weight: 500;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .section-divider {
+            border-top: 2px solid #e0e0e0;
+            margin: 30px 0;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .results-section {
+            margin-top: 20px;
+        }
+
+        .results-section h2 {
+            color: #444;
+            font-size: 18px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .results-section h2::before {
+            content: "📊";
+            margin-right: 8px;
+        }
+
+        #results {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 8px;
+            min-height: 150px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .empty-state {
+            color: #888;
+            font-style: italic;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .success {
+            color: #4caf50;
+        }
+
+        .error {
+            color: #f44336;
+        }
+
+        .hint {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px;
+            margin-top: 15px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #856404;
+        }
+
+        .hint strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Needs Connect - API Tester</h1>
+        <p class="subtitle">Test all API endpoints</p>
+
+        <!-- Login Test Section -->
+        <div class="test-section auth">
+            <h2>Login / Register</h2>
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input 
+                    type="text" 
+                    id="username" 
+                    placeholder="Enter username (e.g., 'admin' or 'john')"
+                    onkeypress="if(event.key === 'Enter') login()"
+                >
+            </div>
+            <button onclick="login()">🚀 Login</button>
+            
+            <div class="hint">
+                <strong>💡 Tip:</strong>
+                Username "admin" gets "manager" role, any other username gets "helper" role.
+            </div>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <!-- Create Need Section -->
+        <div class="test-section create">
+            <h2>Create Need</h2>
+            <div class="form-group">
+                <label for="create_title">Title: *</label>
+                <input type="text" id="create_title" placeholder="e.g., School Supplies">
+            </div>
+            <div class="form-group">
+                <label for="create_description">Description:</label>
+                <textarea id="create_description" placeholder="Detailed description of the need"></textarea>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="create_cost">Cost: *</label>
+                    <input type="number" id="create_cost" placeholder="50.00" step="0.01" min="0">
+                </div>
+                <div class="form-group">
+                    <label for="create_quantity">Quantity: *</label>
+                    <input type="number" id="create_quantity" placeholder="10" min="1">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="create_priority">Priority:</label>
+                    <select id="create_priority">
+                        <option value="normal">Normal</option>
+                        <option value="high">High</option>
+                        <option value="urgent">Urgent</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="create_category">Category:</label>
+                    <input type="text" id="create_category" placeholder="e.g., Education">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="create_manager_id">Manager ID: *</label>
+                <input type="number" id="create_manager_id" placeholder="1" min="1">
+            </div>
+            <button onclick="createNeed()">➕ Create Need</button>
+            <div class="hint">
+                <strong>💡 Tip:</strong>
+                Login as "admin" first to get a manager ID, then use that ID here.
+            </div>
+        </div>
+
+        <!-- Get All Needs Section -->
+        <div class="test-section get-all">
+            <h2>Get All Needs</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="filter_priority">Filter by Priority:</label>
+                    <select id="filter_priority">
+                        <option value="">All Priorities</option>
+                        <option value="urgent">Urgent</option>
+                        <option value="high">High</option>
+                        <option value="normal">Normal</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="filter_category">Filter by Category:</label>
+                    <input type="text" id="filter_category" placeholder="e.g., Education">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="filter_search">Search (Title/Description):</label>
+                <input type="text" id="filter_search" placeholder="Search keywords">
+            </div>
+            <button onclick="getAllNeeds()">📋 Get All Needs</button>
+        </div>
+
+        <!-- Get Need by ID Section -->
+        <div class="test-section get-one">
+            <h2>Get Need by ID</h2>
+            <div class="form-group">
+                <label for="get_need_id">Need ID: *</label>
+                <input type="number" id="get_need_id" placeholder="1" min="1">
+            </div>
+            <button onclick="getNeedById()">🔍 Get Need</button>
+        </div>
+
+        <!-- Update Need Section -->
+        <div class="test-section update">
+            <h2>Update Need</h2>
+            <div class="form-group">
+                <label for="update_need_id">Need ID: *</label>
+                <input type="number" id="update_need_id" placeholder="1" min="1">
+            </div>
+            <div class="form-group">
+                <label for="update_title">Title:</label>
+                <input type="text" id="update_title" placeholder="New title (optional)">
+            </div>
+            <div class="form-group">
+                <label for="update_description">Description:</label>
+                <textarea id="update_description" placeholder="New description (optional)"></textarea>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="update_cost">Cost:</label>
+                    <input type="number" id="update_cost" placeholder="New cost" step="0.01" min="0">
+                </div>
+                <div class="form-group">
+                    <label for="update_quantity">Quantity:</label>
+                    <input type="number" id="update_quantity" placeholder="New quantity" min="1">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="update_priority">Priority:</label>
+                    <select id="update_priority">
+                        <option value="">No Change</option>
+                        <option value="normal">Normal</option>
+                        <option value="high">High</option>
+                        <option value="urgent">Urgent</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="update_category">Category:</label>
+                    <input type="text" id="update_category" placeholder="New category">
+                </div>
+            </div>
+            <button onclick="updateNeed()">✏️ Update Need</button>
+            <div class="hint">
+                <strong>💡 Tip:</strong>
+                Only fill in the fields you want to update. Empty fields will not be changed.
+            </div>
+        </div>
+
+        <!-- Delete Need Section -->
+        <div class="test-section delete">
+            <h2>Delete Need</h2>
+            <div class="form-group">
+                <label for="delete_need_id">Need ID: *</label>
+                <input type="number" id="delete_need_id" placeholder="1" min="1">
+            </div>
+            <button onclick="deleteNeed()">🗑️ Delete Need</button>
+            <div class="hint">
+                <strong>⚠️ Warning:</strong>
+                This will permanently delete the need and all related basket/funding records.
+            </div>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <!-- Add to Basket Section -->
+        <div class="test-section basket-add">
+            <h2>Add to Basket</h2>
+            <div class="form-group">
+                <label for="basket_user_id">User ID: *</label>
+                <input type="number" id="basket_user_id" placeholder="1" min="1">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="basket_need_id">Need ID: *</label>
+                    <input type="number" id="basket_need_id" placeholder="1" min="1">
+                </div>
+                <div class="form-group">
+                    <label for="basket_quantity">Quantity: *</label>
+                    <input type="number" id="basket_quantity" placeholder="1" min="1">
+                </div>
+            </div>
+            <button onclick="addToBasket()">🛒 Add to Basket</button>
+            <div class="hint">
+                <strong>💡 Tip:</strong>
+                If the item is already in the basket, the quantity will be added to the existing amount.
+            </div>
+        </div>
+
+        <!-- Get User Basket Section -->
+        <div class="test-section basket-get">
+            <h2>Get User Basket</h2>
+            <div class="form-group">
+                <label for="get_basket_user_id">User ID: *</label>
+                <input type="number" id="get_basket_user_id" placeholder="1" min="1">
+            </div>
+            <button onclick="getUserBasket()">🧺 Get Basket</button>
+        </div>
+
+        <!-- Update Basket Item Section -->
+        <div class="test-section basket-update">
+            <h2>Update Basket Item</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="update_basket_id">Basket Item ID: *</label>
+                    <input type="number" id="update_basket_id" placeholder="1" min="1">
+                </div>
+                <div class="form-group">
+                    <label for="update_basket_quantity">New Quantity: *</label>
+                    <input type="number" id="update_basket_quantity" placeholder="2" min="1">
+                </div>
+            </div>
+            <button onclick="updateBasketItem()">🔄 Update Basket Item</button>
+            <div class="hint">
+                <strong>💡 Tip:</strong>
+                Get the basket item ID from the "Get User Basket" response.
+            </div>
+        </div>
+
+        <!-- Remove from Basket Section -->
+        <div class="test-section basket-remove">
+            <h2>Remove from Basket</h2>
+            <div class="form-group">
+                <label for="remove_basket_id">Basket Item ID: *</label>
+                <input type="number" id="remove_basket_id" placeholder="1" min="1">
+            </div>
+            <button onclick="removeFromBasket()">❌ Remove from Basket</button>
+        </div>
+
+        <!-- Clear Basket Section -->
+        <div class="test-section basket-clear">
+            <h2>Clear Basket</h2>
+            <div class="form-group">
+                <label for="clear_basket_user_id">User ID: *</label>
+                <input type="number" id="clear_basket_user_id" placeholder="1" min="1">
+            </div>
+            <button onclick="clearBasket()">🧹 Clear Basket</button>
+            <div class="hint">
+                <strong>⚠️ Warning:</strong>
+                This will remove all items from the user's basket.
+            </div>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <!-- Checkout (Fund Basket) Section -->
+        <div class="test-section checkout">
+            <h2>Checkout (Fund Basket)</h2>
+            <div class="form-group">
+                <label for="checkout_user_id">User ID: *</label>
+                <input type="number" id="checkout_user_id" placeholder="1" min="1">
+            </div>
+            <button onclick="checkout()">💳 Checkout & Fund</button>
+            <div class="hint">
+                <strong>💡 Tip:</strong>
+                This will convert all items in the user's basket to funding records and clear the basket.
+            </div>
+        </div>
+
+        <!-- Get User Funding History Section -->
+        <div class="test-section funding-user">
+            <h2>Get User Funding History</h2>
+            <div class="form-group">
+                <label for="funding_user_id">User ID: *</label>
+                <input type="number" id="funding_user_id" placeholder="1" min="1">
+            </div>
+            <button onclick="getUserFundingHistory()">📜 Get My Funding</button>
+        </div>
+
+        <!-- Get All Funding Records Section -->
+        <div class="test-section funding-all">
+            <h2>Get All Funding Records</h2>
+            <button onclick="getAllFunding()">💰 Get All Funding</button>
+            <div class="hint">
+                <strong>💡 Tip:</strong>
+                This displays all funding records from all users (admin view).
+            </div>
+        </div>
+
+        <!-- Get Need Funding Section -->
+        <div class="test-section funding-need">
+            <h2>Get Need Funding</h2>
+            <div class="form-group">
+                <label for="funding_need_id">Need ID: *</label>
+                <input type="number" id="funding_need_id" placeholder="1" min="1">
+            </div>
+            <button onclick="getNeedFunding()">📊 Get Need Funding</button>
+            <div class="hint">
+                <strong>💡 Tip:</strong>
+                See all funding contributions made toward a specific need.
+            </div>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <!-- Results Section -->
+        <div class="results-section">
+            <h2>Response</h2>
+            <div id="results">
+                <div class="empty-state">
+                    No requests made yet. Try logging in above!
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API Base URL
+        const API_URL = 'http://localhost:5000';
+
+        /**
+         * Display results in the results div with formatted JSON
+         * @param {Object} data - Data to display
+         * @param {boolean} isError - Whether this is an error response
+         */
+        function displayResults(data, isError = false) {
+            const resultsDiv = document.getElementById('results');
+            const className = isError ? 'error' : 'success';
+            const formattedJSON = JSON.stringify(data, null, 2);
+            
+            resultsDiv.innerHTML = `<div class="${className}">${formattedJSON}</div>`;
+        }
+
+        /**
+         * Login function - POSTs to /api/auth/login endpoint
+         * Handles both successful login and error cases
+         */
+        async function login() {
+            // Get username from input
+            const username = document.getElementById('username').value.trim();
+
+            // Validate input
+            if (!username) {
+                displayResults({
+                    error: 'Username is required',
+                    message: 'Please enter a username'
+                }, true);
+                return;
+            }
+
+            try {
+                // Show loading state
+                displayResults({
+                    status: 'Loading...',
+                    message: 'Sending request to server...'
+                });
+
+                // Make POST request to login endpoint
+                const response = await fetch(`${API_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username })
+                });
+
+                // Parse JSON response
+                const data = await response.json();
+
+                // Display results based on response status
+                if (response.ok) {
+                    displayResults({
+                        status: response.status,
+                        statusText: response.statusText,
+                        ...data
+                    }, false);
+                } else {
+                    displayResults({
+                        status: response.status,
+                        statusText: response.statusText,
+                        ...data
+                    }, true);
+                }
+
+            } catch (error) {
+                // Handle network errors or other exceptions
+                displayResults({
+                    error: 'Network Error',
+                    message: error.message,
+                    hint: 'Make sure the backend server is running on port 5000'
+                }, true);
+            }
+        }
+
+        /**
+         * Create Need - POSTs to /api/needs
+         */
+        async function createNeed() {
+            const title = document.getElementById('create_title').value.trim();
+            const description = document.getElementById('create_description').value.trim();
+            const cost = document.getElementById('create_cost').value;
+            const quantity = document.getElementById('create_quantity').value;
+            const priority = document.getElementById('create_priority').value;
+            const category = document.getElementById('create_category').value.trim();
+            const manager_id = document.getElementById('create_manager_id').value;
+
+            // Validate required fields
+            if (!title || !cost || !quantity || !manager_id) {
+                displayResults({
+                    error: 'Missing required fields',
+                    message: 'Title, Cost, Quantity, and Manager ID are required'
+                }, true);
+                return;
+            }
+
+            try {
+                displayResults({ status: 'Loading...', message: 'Creating need...' });
+
+                const response = await fetch(`${API_URL}/api/needs`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        title,
+                        description: description || null,
+                        cost: parseFloat(cost),
+                        quantity: parseInt(quantity),
+                        priority,
+                        category: category || null,
+                        manager_id: parseInt(manager_id)
+                    })
+                });
+
+                const data = await response.json();
+                displayResults({
+                    status: response.status,
+                    statusText: response.statusText,
+                    ...data
+                }, !response.ok);
+
+            } catch (error) {
+                displayResults({
+                    error: 'Network Error',
+                    message: error.message
+                }, true);
+            }
+        }
+
+        /**
+         * Get All Needs - GETs from /api/needs with optional filters
+         */
+        async function getAllNeeds() {
+            const priority = document.getElementById('filter_priority').value;
+            const category = document.getElementById('filter_category').value.trim();
+            const search = document.getElementById('filter_search').value.trim();
+
+            try {
+                displayResults({ status: 'Loading...', message: 'Fetching needs...' });
+
+                // Build query string
+                const params = new URLSearchParams();
+                if (priority) params.append('priority', priority);
+                if (category) params.append('category', category);
+                if (search) params.append('search', search);
+
+                const queryString = params.toString();
+                const url = `${API_URL}/api/needs${queryString ? '?' + queryString : ''}`;
+
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                displayResults({
+                    status: response.status,
+                    statusText: response.statusText,
+                    ...data
+                }, !response.ok);
+
+            } catch (error) {
+                displayResults({
+                    error: 'Network Error',
+                    message: error.message
+                }, true);
+            }
+        }
+
+        /**
+         * Get Need by ID - GETs from /api/needs/:id
+         */
+        async function getNeedById() {
+            const needId = document.getElementById('get_need_id').value;
+
+            if (!needId) {
+                displayResults({
+                    error: 'Need ID is required',
+                    message: 'Please enter a need ID'
+                }, true);
+                return;
+            }
+
+            try {
+                displayResults({ status: 'Loading...', message: 'Fetching need...' });
+
+                const response = await fetch(`${API_URL}/api/needs/${needId}`);
+                const data = await response.json();
+                
+                displayResults({
+                    status: response.status,
+                    statusText: response.statusText,
+                    ...data
+                }, !response.ok);
+
+            } catch (error) {
+                displayResults({
+                    error: 'Network Error',
+                    message: error.message
+                }, true);
+            }
+        }
+
+        /**
+         * Update Need - PUTs to /api/needs/:id
+         */
+        async function updateNeed() {
+            const needId = document.getElementById('update_need_id').value;
+
+            if (!needId) {
+                displayResults({
+                    error: 'Need ID is required',
+                    message: 'Please enter a need ID'
+                }, true);
+                return;
+            }
+
+            // Collect fields to update (only non-empty values)
+            const updateData = {};
+            
+            const title = document.getElementById('update_title').value.trim();
+            if (title) updateData.title = title;
+
+            const description = document.getElementById('update_description').value.trim();
+            if (description) updateData.description = description;
+
+            const cost = document.getElementById('update_cost').value;
+            if (cost) updateData.cost = parseFloat(cost);
+
+            const quantity = document.getElementById('update_quantity').value;
+            if (quantity) updateData.quantity = parseInt(quantity);
+
+            const priority = document.getElementById('update_priority').value;
+            if (priority) updateData.priority = priority;
+
+            const category = document.getElementById('update_category').value.trim();
+            if (category) updateData.category = category;
+
+            // Check if at least one field is provided
+            if (Object.keys(updateData).length === 0) {
+                displayResults({
+                    error: 'No fields to update',
+                    message: 'Please fill in at least one field to update'
+                }, true);
+                return;
+            }
+
+            try {
+                displayResults({ status: 'Loading...', message: 'Updating need...' });
+
+                const response = await fetch(`${API_URL}/api/needs/${needId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updateData)
+                });
+
+                const data = await response.json();
+                displayResults({
+                    status: response.status,
+                    statusText: response.statusText,
+                    ...data
+                }, !response.ok);
+
+            } catch (error) {
+                displayResults({
+                    error: 'Network Error',
+                    message: error.message
+                }, true);
+            }
+        }
+
+        /**
+         * Delete Need - DELETEs from /api/needs/:id
+         */
+        async function deleteNeed() {
+            const needId = document.getElementById('delete_need_id').value;
+
+            if (!needId) {
+                displayResults({
+                    error: 'Need ID is required',
+                    message: 'Please enter a need ID'
+                }, true);
+                return;
+            }
+
+            // Confirm deletion
+            if (!confirm(`Are you sure you want to delete need #${needId}? This cannot be undone.`)) {
+                return;
+            }
+
+            try {
+                displayResults({ status: 'Loading...', message: 'Deleting need...' });
+
+                const response = await fetch(`${API_URL}/api/needs/${needId}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+                displayResults({
+                    status: response.status,
+                    statusText: response.statusText,
+                    ...data
+                }, !response.ok);
+
+            } catch (error) {
+                displayResults({
+                    error: 'Network Error',
+                    message: error.message
+                }, true);
+            }
+        }
+
+        /**
+         * Add to Basket - POSTs to /api/basket
+         */
+        async function addToBasket() {
+            const user_id = document.getElementById('basket_user_id').value;
+            const need_id = document.getElementById('basket_need_id').value;
+            const quantity = document.getElementById('basket_quantity').value;
+
+            // Validate required fields
+            if (!user_id || !need_id || !quantity) {
+                displayResults({
+                    error: 'Missing required fields',
+                    message: 'User ID, Need ID, and Quantity are required'
+                }, true);
+                return;
+            }
+
+            try {
+                displayResults({ status: 'Loading...', message: 'Adding to basket...' });
+
+                const response = await fetch(`${API_URL}/api/basket`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: parseInt(user_id),
+                        need_id: parseInt(need_id),
+                        quantity: parseInt(quantity)
+                    })
+                });
+
+                const data = await response.json();
+                displayResults({
+                    status: response.status,
+                    statusText: response.statusText,
+                    ...data
+                }, !response.ok);
+
+            } catch (error) {
+                displayResults({
+                    error: 'Network Error',
+                    message: error.message
+                }, true);
+            }
+        }
+
+        /**
+         * Get User Basket - GETs from /api/basket/:userId
+         */
+        async function getUserBasket() {
+            const userId = document.getElementById('get_basket_user_id').value;
+
+            if (!userId) {
+                displayResults({
+                    error: 'User ID is required',
+                    message: 'Please enter a user ID'
+                }, true);
+                return;
+            }
+
+            try {
+                displayResults({ status: 'Loading...', message: 'Fetching basket...' });
+
+                const response = await fetch(`${API_URL}/api/basket/${userId}`);
+                const data = await response.json();
+                
+                displayResults({
+                    status: response.status,
+                    statusText: response.statusText,
+                    ...data
+                }, !response.ok);
+
+            } catch (error) {
+                displayResults({
+                    error: 'Network Error',
+                    message: error.message
+                }, true);
+            }
+        }
+
+        /**
+         * Update Basket Item - PUTs to /api/basket/:id
+         */
+        async function updateBasketItem() {
+            const basketItemId = document.getElementById('update_basket_id').value;
+            const quantity = document.getElementById('update_basket_quantity').value;
+
+            if (!basketItemId || !quantity) {
+                displayResults({
+                    error: 'Missing required fields',
+                    message: 'Basket Item ID and Quantity are required'
+                }, true);
+                return;
+            }
+
+            try {
+                displayResults({ status: 'Loading...', message: 'Updating basket item...' });
+
+                const response = await fetch(`${API_URL}/api/basket/${basketItemId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        quantity: parseInt(quantity)
+                    })
+                });
+
+                const data = await response.json();
+                displayResults({
+                    status: response.status,
+                    statusText: response.statusText,
+                    ...data
+                }, !response.ok);
+
+            } catch (error) {
+                displayResults({
+                    error: 'Network Error',
+                    message: error.message
+                }, true);
+            }
+        }
+
+        /**
+         * Remove from Basket - DELETEs from /api/basket/:id
+         */
+        async function removeFromBasket() {
+            const basketItemId = document.getElementById('remove_basket_id').value;
+
+            if (!basketItemId) {
+                displayResults({
+                    error: 'Basket Item ID is required',
+                    message: 'Please enter a basket item ID'
+                }, true);
+                return;
+            }
+
+            // Confirm removal
+            if (!confirm(`Are you sure you want to remove basket item #${basketItemId}?`)) {
+                return;
+            }
+
+            try {
+                displayResults({ status: 'Loading...', message: 'Removing from basket...' });
+
+                const response = await fetch(`${API_URL}/api/basket/${basketItemId}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+                displayResults({
+                    status: response.status,
+                    statusText: response.statusText,
+                    ...data
+                }, !response.ok);
+
+            } catch (error) {
+                displayResults({
+                    error: 'Network Error',
+                    message: error.message
+                }, true);
+            }
+        }
+
+        /**
+         * Clear Basket - DELETEs from /api/basket/clear/:userId
+         */
+        async function clearBasket() {
+            const userId = document.getElementById('clear_basket_user_id').value;
+
+            if (!userId) {
+                displayResults({
+                    error: 'User ID is required',
+                    message: 'Please enter a user ID'
+                }, true);
+                return;
+            }
+
+            // Confirm clearing
+            if (!confirm(`Are you sure you want to clear all items from basket for user #${userId}?`)) {
+                return;
+            }
+
+            try {
+                displayResults({ status: 'Loading...', message: 'Clearing basket...' });
+
+                const response = await fetch(`${API_URL}/api/basket/clear/${userId}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+                displayResults({
+                    status: response.status,
+                    statusText: response.statusText,
+                    ...data
+                }, !response.ok);
+
+            } catch (error) {
+                displayResults({
+                    error: 'Network Error',
+                    message: error.message
+                }, true);
+            }
+        }
+
+        /**
+         * Checkout - POSTs to /api/funding/checkout
+         */
+        async function checkout() {
+            const user_id = document.getElementById('checkout_user_id').value;
+
+            if (!user_id) {
+                displayResults({
+                    error: 'User ID is required',
+                    message: 'Please enter a user ID'
+                }, true);
+                return;
+            }
+
+            // Confirm checkout
+            if (!confirm(`Are you sure you want to checkout and fund all items in user #${user_id}'s basket?`)) {
+                return;
+            }
+
+            try {
+                displayResults({ status: 'Loading...', message: 'Processing checkout...' });
+
+                const response = await fetch(`${API_URL}/api/funding/checkout`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: parseInt(user_id)
+                    })
+                });
+
+                const data = await response.json();
+                displayResults({
+                    status: response.status,
+                    statusText: response.statusText,
+                    ...data
+                }, !response.ok);
+
+            } catch (error) {
+                displayResults({
+                    error: 'Network Error',
+                    message: error.message
+                }, true);
+            }
+        }
+
+        /**
+         * Get User Funding History - GETs from /api/funding/user/:userId
+         */
+        async function getUserFundingHistory() {
+            const userId = document.getElementById('funding_user_id').value;
+
+            if (!userId) {
+                displayResults({
+                    error: 'User ID is required',
+                    message: 'Please enter a user ID'
+                }, true);
+                return;
+            }
+
+            try {
+                displayResults({ status: 'Loading...', message: 'Fetching funding history...' });
+
+                const response = await fetch(`${API_URL}/api/funding/user/${userId}`);
+                const data = await response.json();
+                
+                displayResults({
+                    status: response.status,
+                    statusText: response.statusText,
+                    ...data
+                }, !response.ok);
+
+            } catch (error) {
+                displayResults({
+                    error: 'Network Error',
+                    message: error.message
+                }, true);
+            }
+        }
+
+        /**
+         * Get All Funding Records - GETs from /api/funding/all
+         */
+        async function getAllFunding() {
+            try {
+                displayResults({ status: 'Loading...', message: 'Fetching all funding records...' });
+
+                const response = await fetch(`${API_URL}/api/funding/all`);
+                const data = await response.json();
+                
+                displayResults({
+                    status: response.status,
+                    statusText: response.statusText,
+                    ...data
+                }, !response.ok);
+
+            } catch (error) {
+                displayResults({
+                    error: 'Network Error',
+                    message: error.message
+                }, true);
+            }
+        }
+
+        /**
+         * Get Need Funding - GETs from /api/funding/need/:needId
+         */
+        async function getNeedFunding() {
+            const needId = document.getElementById('funding_need_id').value;
+
+            if (!needId) {
+                displayResults({
+                    error: 'Need ID is required',
+                    message: 'Please enter a need ID'
+                }, true);
+                return;
+            }
+
+            try {
+                displayResults({ status: 'Loading...', message: 'Fetching need funding records...' });
+
+                const response = await fetch(`${API_URL}/api/funding/need/${needId}`);
+                const data = await response.json();
+                
+                displayResults({
+                    status: response.status,
+                    statusText: response.statusText,
+                    ...data
+                }, !response.ok);
+
+            } catch (error) {
+                displayResults({
+                    error: 'Network Error',
+                    message: error.message
+                }, true);
+            }
+        }
+
+        // Focus on username input on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('username').focus();
+        });
+    </script>
+</body>
+</html>
+
