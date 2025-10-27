@@ -203,6 +203,35 @@ function NeedsList() {
     );
   }
 
+  // Calculate priority statistics
+  const urgentNeeds = needs.filter(need => need.priority === 'urgent');
+  const highNeeds = needs.filter(need => need.priority === 'high');
+  const normalNeeds = needs.filter(need => need.priority === 'normal');
+
+  // Calculate total costs by priority
+  const urgentTotal = urgentNeeds.reduce((sum, need) => {
+    const available = need.quantity - need.quantity_fulfilled;
+    return sum + (need.cost * available);
+  }, 0);
+  
+  const highTotal = highNeeds.reduce((sum, need) => {
+    const available = need.quantity - need.quantity_fulfilled;
+    return sum + (need.cost * available);
+  }, 0);
+
+  const normalTotal = normalNeeds.reduce((sum, need) => {
+    const available = need.quantity - need.quantity_fulfilled;
+    return sum + (need.cost * available);
+  }, 0);
+
+  // Quick filter handlers
+  const handleQuickFilter = (priority) => {
+    setPriorityFilter(priority);
+    setSearchTerm('');
+    setCategoryFilter('');
+    fetchNeeds({ priority });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 p-8">
       {/* Header */}
@@ -211,6 +240,124 @@ function NeedsList() {
         <p className="text-gray-300">Help non-profit organizations by funding their needs</p>
         <p className="text-gray-400 text-sm mt-2">Total needs: {needs.length}</p>
       </div>
+
+      {/* Priority Statistics Dashboard */}
+      <div className="max-w-6xl mx-auto mb-6">
+        <div className="bg-gradient-to-r from-gray-800 to-gray-900 rounded-lg p-6 shadow-xl border border-gray-700">
+          <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+            📊 Needs by Priority
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Urgent Stats */}
+            <button
+              onClick={() => handleQuickFilter('urgent')}
+              className="bg-red-900 border-2 border-red-500 rounded-lg p-4 hover:bg-red-800 transition-all transform hover:scale-105 text-left"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-red-300 font-bold text-lg">🚨 URGENT</span>
+                <span className="text-red-200 text-2xl font-bold">{urgentNeeds.length}</span>
+              </div>
+              <p className="text-red-200 text-sm mb-1">Time-sensitive needs</p>
+              <p className="text-red-300 font-bold">${urgentTotal.toFixed(2)} needed</p>
+              {urgentNeeds.length > 0 && (
+                <p className="text-red-400 text-xs mt-2">⚡ Click to view urgent needs</p>
+              )}
+            </button>
+
+            {/* High Priority Stats */}
+            <button
+              onClick={() => handleQuickFilter('high')}
+              className="bg-orange-900 border-2 border-orange-500 rounded-lg p-4 hover:bg-orange-800 transition-all transform hover:scale-105 text-left"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-orange-300 font-bold text-lg">⚠️ HIGH</span>
+                <span className="text-orange-200 text-2xl font-bold">{highNeeds.length}</span>
+              </div>
+              <p className="text-orange-200 text-sm mb-1">Important needs</p>
+              <p className="text-orange-300 font-bold">${highTotal.toFixed(2)} needed</p>
+              {highNeeds.length > 0 && (
+                <p className="text-orange-400 text-xs mt-2">⚡ Click to view high priority</p>
+              )}
+            </button>
+
+            {/* Normal Stats */}
+            <button
+              onClick={() => handleQuickFilter('normal')}
+              className="bg-green-900 border-2 border-green-500 rounded-lg p-4 hover:bg-green-800 transition-all transform hover:scale-105 text-left"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-green-300 font-bold text-lg">✅ NORMAL</span>
+                <span className="text-green-200 text-2xl font-bold">{normalNeeds.length}</span>
+              </div>
+              <p className="text-green-200 text-sm mb-1">Standard needs</p>
+              <p className="text-green-300 font-bold">${normalTotal.toFixed(2)} needed</p>
+              {normalNeeds.length > 0 && (
+                <p className="text-green-400 text-xs mt-2">⚡ Click to view normal priority</p>
+              )}
+            </button>
+          </div>
+
+          {/* Clear Filter Button */}
+          {priorityFilter && (
+            <button
+              onClick={() => {
+                handleClearFilters();
+              }}
+              className="mt-4 w-full px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+            >
+              Show All Needs
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Urgent Needs Hero Section */}
+      {urgentNeeds.length > 0 && !priorityFilter && (
+        <div className="max-w-6xl mx-auto mb-6">
+          <div className="bg-gradient-to-r from-red-900 to-red-800 border-2 border-red-500 rounded-lg p-6 shadow-2xl animate-pulse-slow">
+            <div className="flex items-center gap-3 mb-4">
+              <span className="text-4xl">🚨</span>
+              <div>
+                <h2 className="text-3xl font-bold text-white">Urgent Needs - Immediate Help Required!</h2>
+                <p className="text-red-200">These time-sensitive needs require immediate attention</p>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              {urgentNeeds.slice(0, 2).map(need => {
+                const available = need.quantity - need.quantity_fulfilled;
+                return (
+                  <div key={need.id} className="bg-red-950 rounded-lg p-4 border border-red-400">
+                    <h3 className="text-xl font-bold text-white mb-2">{need.title}</h3>
+                    <p className="text-red-200 text-sm mb-2">{need.description?.substring(0, 80)}...</p>
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p className="text-red-300 font-bold">${need.cost} each</p>
+                        <p className="text-red-400 text-sm">{available} needed</p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          document.getElementById(`need-${need.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }}
+                        className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white font-bold rounded-lg transition-colors"
+                      >
+                        Help Now →
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {urgentNeeds.length > 2 && (
+              <p className="text-red-200 text-center">
+                + {urgentNeeds.length - 2} more urgent need(s) below
+              </p>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Search and Filters Section */}
       <div className="max-w-6xl mx-auto mb-6">
@@ -289,18 +436,43 @@ function NeedsList() {
             {needs.map((need) => {
               const availableQuantity = need.quantity - need.quantity_fulfilled;
               
+              const isUrgent = need.priority === 'urgent';
+              const isHigh = need.priority === 'high';
+              
               return (
                 <div
+                  id={`need-${need.id}`}
                   key={need.id}
-                  className="bg-gray-800 rounded-lg p-6 shadow-lg hover:shadow-xl transition-shadow"
+                  className={`rounded-lg p-6 shadow-lg hover:shadow-xl transition-all ${
+                    isUrgent 
+                      ? 'bg-gradient-to-br from-red-900 to-gray-800 border-2 border-red-500 shadow-red-500/50' 
+                      : isHigh
+                      ? 'bg-gradient-to-br from-orange-900 to-gray-800 border-2 border-orange-500 shadow-orange-500/30'
+                      : 'bg-gray-800'
+                  }`}
                 >
+                  {/* Urgent Time-Sensitive Banner */}
+                  {isUrgent && (
+                    <div className="bg-red-600 text-white px-4 py-2 rounded-lg mb-3 flex items-center gap-2 font-bold">
+                      <span className="text-xl">⏰</span>
+                      <span>TIME-SENSITIVE - Immediate Action Required</span>
+                    </div>
+                  )}
+
                   {/* Priority Badge */}
                   <div className="flex items-start justify-between mb-3">
-                    <span
-                      className={`${getPriorityColor(need.priority)} text-white text-xs font-bold px-3 py-1 rounded-full uppercase`}
-                    >
-                      {need.priority}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`${getPriorityColor(need.priority)} text-white text-xs font-bold px-3 py-1 rounded-full uppercase`}
+                      >
+                        {need.priority === 'urgent' ? '🚨 URGENT' : need.priority === 'high' ? '⚠️ HIGH' : need.priority}
+                      </span>
+                      {isUrgent && (
+                        <span className="text-red-300 text-xs font-bold">
+                          ⚡ HELP NOW
+                        </span>
+                      )}
+                    </div>
                     <span className="text-gray-400 text-sm">
                       {need.category || 'General'}
                     </span>
