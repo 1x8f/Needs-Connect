@@ -9,7 +9,6 @@ function Basket() {
   // State management
   const [basket, setBasket] = useState([]);
   const [totalCost, setTotalCost] = useState(0);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
   // Update/remove states
@@ -34,7 +33,6 @@ function Basket() {
   // Fetch basket from API
   const fetchBasket = async () => {
     try {
-      setLoading(true);
       setError(null);
       const response = await getBasket(currentUserId);
 
@@ -47,8 +45,6 @@ function Basket() {
     } catch (err) {
       setError('Error connecting to server');
       console.error('Error fetching basket:', err);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -154,8 +150,6 @@ function Basket() {
       return;
     }
 
-    setLoading(true);
-
     try {
       const response = await clearBasket(currentUserId);
 
@@ -169,8 +163,6 @@ function Basket() {
     } catch (err) {
       console.error('Error clearing basket:', err);
       setError('Error connecting to server');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -229,17 +221,8 @@ function Basket() {
     }
   };
 
-  // Show loading state
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center">
-        <div className="text-white text-2xl">Loading basket...</div>
-      </div>
-    );
-  }
-
-  // Show error state
-  if (error) {
+  // Show error state (only on critical errors)
+  if (error && basket.length === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center">
         <div className="text-center">

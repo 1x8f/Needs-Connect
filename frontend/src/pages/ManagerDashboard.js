@@ -8,13 +8,11 @@ import { getAllNeeds, deleteNeed } from '../services/api';
 function ManagerDashboard() {
   // State management
   const [needs, setNeeds] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [deleteMessages, setDeleteMessages] = useState({}); // Track delete messages per need
 
   // TODO: Replace with actual logged-in user from authentication
   // For now, hardcoded as user 1 (admin - manager)
-  const currentUserId = 1;
   const currentUsername = 'admin';
 
   // Fetch manager's needs on component load
@@ -25,7 +23,6 @@ function ManagerDashboard() {
   // Fetch needs belonging to this manager
   const fetchManagerNeeds = async () => {
     try {
-      setLoading(true);
       setError(null);
       
       // Get all needs
@@ -43,8 +40,6 @@ function ManagerDashboard() {
     } catch (err) {
       setError('Error connecting to server');
       console.error('Error fetching needs:', err);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -113,17 +108,8 @@ function ManagerDashboard() {
     }
   };
 
-  // Show loading state
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center">
-        <div className="text-white text-2xl">Loading your cupboard...</div>
-      </div>
-    );
-  }
-
-  // Show error state
-  if (error) {
+  // Show error state (only on critical errors)
+  if (error && needs.length === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center">
         <div className="text-center">

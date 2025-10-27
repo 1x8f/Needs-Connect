@@ -16,7 +16,8 @@ function EditNeed() {
     cost: '',
     quantity: '',
     priority: 'normal',
-    category: ''
+    category: '',
+    org_type: 'other'
   });
 
   // Original data for comparison
@@ -52,7 +53,8 @@ function EditNeed() {
           cost: need.cost || '',
           quantity: need.quantity || '',
           priority: need.priority || 'normal',
-          category: need.category || ''
+          category: need.category || '',
+          org_type: need.org_type || 'other'
         };
 
         setFormData(data);
@@ -395,6 +397,28 @@ function EditNeed() {
                 className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
+          </div>
+
+          {/* Organization Type */}
+          <div className="mb-6">
+            <label className="block text-white text-sm font-bold mb-2">
+              Organization Type <span className="text-red-500">*</span>
+            </label>
+            <select
+              name="org_type"
+              value={formData.org_type}
+              onChange={handleChange}
+              className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="food_bank">🍽️ Food Bank - Food assistance programs</option>
+              <option value="animal_shelter">🐾 Animal Shelter - Animal care and adoption</option>
+              <option value="hospital">🏥 Hospital - Medical care and supplies</option>
+              <option value="school">📚 School - Educational materials and support</option>
+              <option value="homeless_shelter">🏠 Homeless Shelter - Housing and basic needs</option>
+              <option value="disaster_relief">🌍 Disaster Relief - Emergency assistance</option>
+              <option value="other">🔷 Other - General non-profit</option>
+            </select>
+            <p className="text-gray-400 text-sm mt-1">Select your organization type for customized features</p>
           </div>
 
           {/* Changes Indicator */}

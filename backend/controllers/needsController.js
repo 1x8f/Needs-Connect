@@ -156,6 +156,7 @@ const createNeed = async (req, res) => {
       quantity,
       priority,
       category,
+      org_type,
       manager_id
     } = req.body;
 
@@ -213,6 +214,15 @@ const createNeed = async (req, res) => {
       });
     }
 
+    // Validate org_type if provided
+    const validOrgTypes = ['food_bank', 'animal_shelter', 'hospital', 'school', 'homeless_shelter', 'disaster_relief', 'other'];
+    if (org_type && !validOrgTypes.includes(org_type)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Organization type must be one of: food_bank, animal_shelter, hospital, school, homeless_shelter, disaster_relief, other'
+      });
+    }
+
     // Verify manager exists and has manager role
     const [managers] = await pool.query(
       'SELECT id, role FROM users WHERE id = ?',
@@ -236,8 +246,8 @@ const createNeed = async (req, res) => {
     // Insert new need into database
     const insertQuery = `
       INSERT INTO needs 
-      (title, description, cost, quantity, priority, category, manager_id)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      (title, description, cost, quantity, priority, category, org_type, manager_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const [result] = await pool.query(insertQuery, [
@@ -247,6 +257,7 @@ const createNeed = async (req, res) => {
       parseInt(quantity),
       priority || 'normal',
       category || null,
+      org_type || 'other',
       manager_id
     ]);
 
@@ -325,7 +336,8 @@ const updateNeed = async (req, res) => {
       quantity,
       quantity_fulfilled,
       priority,
-      category
+      category,
+      org_type
     } = req.body;
 
     // Validate cost if provided
@@ -372,6 +384,15 @@ const updateNeed = async (req, res) => {
       });
     }
 
+    // Validate org_type if provided
+    const validOrgTypes = ['food_bank', 'animal_shelter', 'hospital', 'school', 'homeless_shelter', 'disaster_relief', 'other'];
+    if (org_type && !validOrgTypes.includes(org_type)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Organization type must be one of: food_bank, animal_shelter, hospital, school, homeless_shelter, disaster_relief, other'
+      });
+    }
+
     // Build dynamic update query
     const updates = [];
     const values = [];
@@ -403,6 +424,10 @@ const updateNeed = async (req, res) => {
     if (category !== undefined) {
       updates.push('category = ?');
       values.push(category);
+    }
+    if (org_type !== undefined) {
+      updates.push('org_type = ?');
+      values.push(org_type);
     }
 
     // Check if there are any fields to update

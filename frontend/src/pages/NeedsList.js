@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getAllNeeds, addToBasket } from '../services/api';
+import AdoptionImpactTracker from '../components/AdoptionImpactTracker';
+import ShelterImpactDashboard from '../components/ShelterImpactDashboard';
 
 /**
  * NeedsList Page - Display all available needs
@@ -8,7 +10,6 @@ import { getAllNeeds, addToBasket } from '../services/api';
 function NeedsList() {
   // State to store the needs from the API
   const [needs, setNeeds] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   // Filter states
@@ -32,7 +33,6 @@ function NeedsList() {
 
   const fetchNeeds = async (filters = {}) => {
     try {
-      setLoading(true);
       setError(null);
       const response = await getAllNeeds(filters);
       
@@ -44,8 +44,6 @@ function NeedsList() {
     } catch (err) {
       setError('Error connecting to server');
       console.error('Error fetching needs:', err);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -185,17 +183,8 @@ function NeedsList() {
     }
   };
 
-  // Show loading state
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center">
-        <div className="text-white text-2xl">Loading needs...</div>
-      </div>
-    );
-  }
-
-  // Show error state
-  if (error) {
+  // Show error state (only on critical errors, not during normal operation)
+  if (error && needs.length === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center">
         <div className="text-red-400 text-2xl">{error}</div>
@@ -239,6 +228,11 @@ function NeedsList() {
         <h1 className="text-4xl font-bold text-white mb-2">Available Needs</h1>
         <p className="text-gray-300">Help non-profit organizations by funding their needs</p>
         <p className="text-gray-400 text-sm mt-2">Total needs: {needs.length}</p>
+      </div>
+
+      {/* Shelter-Wide Impact Dashboard */}
+      <div className="max-w-6xl mx-auto">
+        <ShelterImpactDashboard needs={needs} />
       </div>
 
       {/* Priority Statistics Dashboard */}
@@ -584,6 +578,11 @@ function NeedsList() {
                       </div>
                     )}
                   </div>
+
+                  {/* Adoption Impact Tracker - Only for Animal Shelter needs */}
+                  {need.org_type === 'animal_shelter' && (
+                    <AdoptionImpactTracker need={need} />
+                  )}
                 </div>
               );
             })}
