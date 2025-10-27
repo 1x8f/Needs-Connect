@@ -1,25 +1,122 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import Navigation from './components/Navigation';
+import Login from './pages/Login';
 import NeedsList from './pages/NeedsList';
 import Basket from './pages/Basket';
 import ManagerDashboard from './pages/ManagerDashboard';
 import AddNeed from './pages/AddNeed';
 import EditNeed from './pages/EditNeed';
 
+// Protected Route Component - Redirects to login if not authenticated
+function ProtectedRoute({ children }) {
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-900 flex items-center justify-center">
+        <div className="text-white text-2xl">Loading...</div>
+      </div>
+    );
+  }
+
+  return isAuthenticated ? children : <Navigate to="/login" />;
+}
+
+// Manager-Only Route Component
+function ManagerRoute({ children }) {
+  const { isAuthenticated, isManager, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-900 flex items-center justify-center">
+        <div className="text-white text-2xl">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" />;
+  }
+
+  if (!isManager) {
+    return <Navigate to="/" />;
+  }
+
+  return children;
+}
+
+// App Routes Component (needs auth context)
+function AppRoutes() {
+  const { isAuthenticated } = useAuth();
+
+  return (
+    <div>
+      {/* Only show navigation if authenticated */}
+      {isAuthenticated && <Navigation />}
+      
+      <Routes>
+        {/* Public Route */}
+        <Route path="/login" element={<Login />} />
+
+        {/* Protected Routes (Require Authentication) */}
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <NeedsList />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/basket"
+          element={
+            <ProtectedRoute>
+              <Basket />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Manager-Only Routes */}
+        <Route
+          path="/manager"
+          element={
+            <ManagerRoute>
+              <ManagerDashboard />
+            </ManagerRoute>
+          }
+        />
+        <Route
+          path="/manager/add-need"
+          element={
+            <ManagerRoute>
+              <AddNeed />
+            </ManagerRoute>
+          }
+        />
+        <Route
+          path="/manager/edit-need/:needId"
+          element={
+            <ManagerRoute>
+              <EditNeed />
+            </ManagerRoute>
+          }
+        />
+
+        {/* Catch all - redirect to home or login */}
+        <Route path="*" element={<Navigate to={isAuthenticated ? "/" : "/login"} />} />
+      </Routes>
+    </div>
+  );
+}
+
 function App() {
   return (
     <Router>
-      <div>
-        <Navigation />
-        <Routes>
-          <Route path="/" element={<NeedsList />} />
-          <Route path="/basket" element={<Basket />} />
-          <Route path="/manager" element={<ManagerDashboard />} />
-          <Route path="/manager/add-need" element={<AddNeed />} />
-          <Route path="/manager/edit-need/:needId" element={<EditNeed />} />
-        </Routes>
-      </div>
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
     </Router>
   );
 }

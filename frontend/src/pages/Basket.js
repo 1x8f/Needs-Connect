@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
 import { getBasket, updateBasketItem, removeFromBasket, clearBasket, checkout } from '../services/api';
 
 /**
@@ -6,6 +7,8 @@ import { getBasket, updateBasketItem, removeFromBasket, clearBasket, checkout } 
  * Helpers can update quantities, remove items, and checkout
  */
 function Basket() {
+  const { user } = useAuth();
+  
   // State management
   const [basket, setBasket] = useState([]);
   const [totalCost, setTotalCost] = useState(0);
@@ -21,10 +24,6 @@ function Basket() {
   const [checkoutError, setCheckoutError] = useState(null);
   const [checkoutTotal, setCheckoutTotal] = useState(0); // Store the checkout total
 
-  // TODO: Replace with actual logged-in user from authentication
-  // For now, hardcoded as user 2 (john - helper)
-  const currentUserId = 2;
-
   // Fetch basket on component load
   useEffect(() => {
     fetchBasket();
@@ -34,7 +33,7 @@ function Basket() {
   const fetchBasket = async () => {
     try {
       setError(null);
-      const response = await getBasket(currentUserId);
+      const response = await getBasket(user.id);
 
       if (response.success) {
         setBasket(response.basket);
@@ -151,7 +150,7 @@ function Basket() {
     }
 
     try {
-      const response = await clearBasket(currentUserId);
+      const response = await clearBasket(user.id);
 
       if (response.success) {
         // Success! Refresh the basket
@@ -181,7 +180,7 @@ function Basket() {
     setCheckoutError(null);
 
     try {
-      const response = await checkout(currentUserId);
+      const response = await checkout(user.id);
 
       if (response.success) {
         // SUCCESS! Save the total amount BEFORE clearing

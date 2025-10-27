@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
 import { createNeed } from '../services/api';
 
 /**
@@ -6,6 +7,8 @@ import { createNeed } from '../services/api';
  * Managers use this form to add new needs to their cupboard
  */
 function AddNeed() {
+  const { user } = useAuth();
+  
   // Form state
   const [formData, setFormData] = useState({
     title: '',
@@ -22,10 +25,6 @@ function AddNeed() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(null);
   const [validationErrors, setValidationErrors] = useState({});
-
-  // TODO: Replace with actual logged-in user from authentication
-  // For now, hardcoded as user 1 (admin - manager)
-  const currentUserId = 1;
 
   // Handle input changes
   const handleChange = (e) => {
@@ -113,7 +112,8 @@ function AddNeed() {
         quantity: parseInt(formData.quantity),
         priority: formData.priority,
         category: formData.category.trim() || null,
-        manager_id: currentUserId
+        org_type: formData.org_type,
+        manager_id: user.id
       };
 
       // Call API

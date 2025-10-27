@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
 import { getAllNeeds, addToBasket } from '../services/api';
 import AdoptionImpactTracker from '../components/AdoptionImpactTracker';
 import ShelterImpactDashboard from '../components/ShelterImpactDashboard';
@@ -9,8 +8,6 @@ import ShelterImpactDashboard from '../components/ShelterImpactDashboard';
  * Clean, minimal, spacious design with collapsible sections
  */
 function NeedsList() {
-  const { user } = useAuth();
-  
   // State to store the needs from the API
   const [needs, setNeeds] = useState([]);
   const [error, setError] = useState(null);
@@ -29,6 +26,10 @@ function NeedsList() {
   const [showShelterImpact, setShowShelterImpact] = useState(false);
   const [showPriorityStats, setShowPriorityStats] = useState(false);
   const [showUrgentHero, setShowUrgentHero] = useState(true);
+
+  // TODO: Replace with actual logged-in user from authentication
+  // For now, hardcoded as user 2 (john - helper)
+  const currentUserId = 2;
 
   // Fetch needs when component loads
   useEffect(() => {
@@ -117,7 +118,7 @@ function NeedsList() {
     try {
       // Call the API
       const response = await addToBasket({
-        user_id: user.id,
+        user_id: currentUserId,
         need_id: need.id,
         quantity: quantity
       });

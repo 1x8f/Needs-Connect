@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
 import { getAllNeeds, deleteNeed } from '../services/api';
 
 /**
@@ -6,14 +7,12 @@ import { getAllNeeds, deleteNeed } from '../services/api';
  * Managers can view, add, edit, and delete their needs
  */
 function ManagerDashboard() {
+  const { user } = useAuth();
+  
   // State management
   const [needs, setNeeds] = useState([]);
   const [error, setError] = useState(null);
   const [deleteMessages, setDeleteMessages] = useState({}); // Track delete messages per need
-
-  // TODO: Replace with actual logged-in user from authentication
-  // For now, hardcoded as user 1 (admin - manager)
-  const currentUsername = 'admin';
 
   // Fetch manager's needs on component load
   useEffect(() => {
@@ -31,7 +30,7 @@ function ManagerDashboard() {
       if (response.success) {
         // Filter to show only THIS manager's needs
         const managerNeeds = response.needs.filter(
-          need => need.manager_username === currentUsername
+          need => need.manager_username === user.username
         );
         setNeeds(managerNeeds);
       } else {
