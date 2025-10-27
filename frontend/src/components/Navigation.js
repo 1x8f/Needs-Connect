@@ -29,6 +29,12 @@ function Navigation() {
             >
               🛒 Basket
             </a>
+            <a
+              href="/manager"
+              className="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg transition-colors flex items-center gap-2"
+            >
+              📦 Manager
+            </a>
           </div>
         </div>
       </div>

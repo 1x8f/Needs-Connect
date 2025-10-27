@@ -20,6 +20,7 @@ function Basket() {
   const [checkingOut, setCheckingOut] = useState(false);
   const [checkoutSuccess, setCheckoutSuccess] = useState(false);
   const [checkoutError, setCheckoutError] = useState(null);
+  const [checkoutTotal, setCheckoutTotal] = useState(0); // Store the checkout total
 
   // TODO: Replace with actual logged-in user from authentication
   // For now, hardcoded as user 2 (john - helper)
@@ -191,7 +192,8 @@ function Basket() {
       const response = await checkout(currentUserId);
 
       if (response.success) {
-        // SUCCESS! Show success state
+        // SUCCESS! Save the total amount BEFORE clearing
+        setCheckoutTotal(response.totalAmount || totalCost);
         setCheckoutSuccess(true);
         
         // Clear basket display
@@ -267,7 +269,7 @@ function Basket() {
           <div className="bg-green-900 border-2 border-green-500 rounded-lg p-6 text-center">
             <h2 className="text-3xl font-bold text-green-200 mb-2">🎉 Checkout Successful!</h2>
             <p className="text-green-300 text-lg">Thank you for funding these needs!</p>
-            <p className="text-green-400 mt-2">Total funded: ${totalCost.toFixed(2)}</p>
+            <p className="text-green-400 mt-2">Total funded: ${checkoutTotal.toFixed(2)}</p>
             <button
               onClick={() => {
                 setCheckoutSuccess(false);
