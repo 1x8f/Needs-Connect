@@ -215,21 +215,9 @@ const CategorySelection = () => {
                       </div>
                       
                       {/* Category Name */}
-                      <h3 className="text-lg md:text-xl font-bold text-slate-900 text-center mb-2 group-hover:text-blue-600 transition-colors">
+                      <h3 className="text-lg md:text-xl font-bold text-slate-900 text-center group-hover:text-blue-600 transition-colors">
                         {category.name}
                       </h3>
-                      
-                      {/* Need Count */}
-                      <p className="text-sm text-slate-600 text-center font-medium">
-                        {catStats.needCount} active {catStats.needCount === 1 ? 'need' : 'needs'}
-                      </p>
-                      
-                      {/* Total Value */}
-                      {catStats.totalValue > 0 && (
-                        <p className="text-xs text-slate-500 text-center mt-2">
-                          ${catStats.totalValue.toLocaleString()} in needs
-                        </p>
-                      )}
                     </div>
                   </Link>
                 );

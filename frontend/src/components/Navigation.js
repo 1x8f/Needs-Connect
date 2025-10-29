@@ -69,6 +69,7 @@ function Navigation() {
           <div className="hidden md:flex items-center gap-2">
             <NavLink
               to="/browse"
+              end={false}
               className={({ isActive }) =>
                 `px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200 flex items-center gap-2 ${
                   isActive || location.pathname.startsWith('/browse') || location.pathname.startsWith('/needs')
@@ -103,6 +104,7 @@ function Navigation() {
             {isManager && (
               <NavLink
                 to="/manager"
+                end={false}
                 className={({ isActive }) =>
                   `px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200 flex items-center gap-2 ${
                     isActive || location.pathname.startsWith('/manager')
@@ -192,6 +194,7 @@ function Navigation() {
               {/* Nav Links */}
               <NavLink
                 to="/browse"
+                end={false}
                 onClick={() => setShowMobileMenu(false)}
                 className={({ isActive }) =>
                   `flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
@@ -228,6 +231,7 @@ function Navigation() {
               {isManager && (
                 <NavLink
                   to="/manager"
+                  end={false}
                   onClick={() => setShowMobileMenu(false)}
                   className={({ isActive }) =>
                     `flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
