@@ -82,6 +82,13 @@ function AddNeed() {
       errors.priority = 'Invalid priority level';
     }
 
+    // Category validation
+    if (!formData.category) {
+      errors.category = 'Please select a category';
+    } else if (!['food', 'clothing', 'shelter', 'education', 'healthcare', 'other'].includes(formData.category)) {
+      errors.category = 'Invalid category selected';
+    }
+
     return errors;
   };
 
@@ -130,7 +137,8 @@ function AddNeed() {
           cost: '',
           quantity: '',
           priority: 'normal',
-          category: ''
+          category: '',
+          org_type: 'other'
         });
 
         // Scroll to top to see success message
@@ -301,17 +309,30 @@ function AddNeed() {
             {/* Category */}
             <div>
               <label className="block text-white text-sm font-bold mb-2">
-                Category
+                Category <span className="text-red-500">*</span>
               </label>
-              <input
-                type="text"
+              <select
                 name="category"
                 value={formData.category}
                 onChange={handleChange}
-                placeholder="e.g., food, clothing, toys"
-                className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <p className="text-gray-400 text-sm mt-1">Helps helpers filter by type of need</p>
+                className={`w-full px-4 py-3 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 ${
+                  validationErrors.category ? 'ring-2 ring-red-500' : 'focus:ring-blue-500'
+                }`}
+              >
+                <option value="">Select a category...</option>
+                <option value="food">🍽️ Food & Nutrition</option>
+                <option value="clothing">👕 Clothing & Essentials</option>
+                <option value="shelter">🏠 Shelter & Housing</option>
+                <option value="education">📚 Education</option>
+                <option value="healthcare">❤️ Healthcare</option>
+                <option value="other">🔷 Other Causes</option>
+              </select>
+              {validationErrors.category && (
+                <p className="text-red-400 text-sm mt-2">{validationErrors.category}</p>
+              )}
+              {!validationErrors.category && (
+                <p className="text-gray-400 text-sm mt-1">Helps helpers find your need by category</p>
+              )}
             </div>
           </div>
 
