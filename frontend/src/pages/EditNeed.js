@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { getNeedById, updateNeed } from '../services/api';
 
@@ -30,13 +30,8 @@ function EditNeed() {
   const [error, setError] = useState(null);
   const [validationErrors, setValidationErrors] = useState({});
 
-  // Fetch need data on component load
-  useEffect(() => {
-    fetchNeed();
-  }, [needId]);
-
   // Fetch the need to edit
-  const fetchNeed = async () => {
+  const fetchNeed = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -70,7 +65,12 @@ function EditNeed() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [needId]);
+
+  // Fetch need data on component load
+  useEffect(() => {
+    fetchNeed();
+  }, [fetchNeed]);
 
   // Handle input changes
   const handleChange = (e) => {

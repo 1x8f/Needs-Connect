@@ -3,9 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Navigation from './components/Navigation';
 import Login from './pages/Login';
-import CategorySelection from './pages/CategorySelection';
 import NeedsList from './pages/NeedsList';
-import NeedDetails from './pages/NeedDetails';
 import Basket from './pages/Basket';
 import ManagerDashboard from './pages/ManagerDashboard';
 import AddNeed from './pages/AddNeed';
@@ -63,47 +61,23 @@ function AppRoutes() {
           {/* Public Route */}
           <Route path="/login" element={<Login />} />
 
-          {/* Protected Routes (Require Authentication) */}
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <CategorySelection />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/browse"
-            element={
-              <ProtectedRoute>
-                <CategorySelection />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/browse/category/:categorySlug"
-            element={
-              <ProtectedRoute>
-                <NeedsList />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/needs/:needId"
-            element={
-              <ProtectedRoute>
-                <NeedDetails />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/basket"
-            element={
-              <ProtectedRoute>
-                <Basket />
-              </ProtectedRoute>
-            }
-          />
+        {/* Protected Routes (Require Authentication) */}
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <NeedsList />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/basket"
+          element={
+            <ProtectedRoute>
+              <Basket />
+            </ProtectedRoute>
+          }
+        />
 
           {/* Manager-Only Routes */}
           <Route

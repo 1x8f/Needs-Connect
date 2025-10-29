@@ -67,20 +67,20 @@ function Navigation() {
 
           {/* CENTER SECTION - Navigation Tabs (Desktop) */}
           <div className="hidden md:flex items-center gap-2">
-            <NavLink
-              to="/browse"
-              end={false}
-              className={({ isActive }) =>
-                `px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200 flex items-center gap-2 ${
-                  isActive || location.pathname.startsWith('/browse') || location.pathname.startsWith('/needs')
-                    ? 'text-blue-600 bg-blue-50'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                }`
-              }
-            >
-              <Package className="w-4 h-4" strokeWidth={2} />
-              Browse Needs
-            </NavLink>
+          <NavLink
+            to="/"
+            end={true}
+            className={({ isActive }) =>
+              `px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200 flex items-center gap-2 ${
+                isActive
+                  ? 'text-blue-600 bg-blue-50'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }`
+            }
+          >
+            <Package className="w-4 h-4" strokeWidth={2} />
+            Browse Needs
+          </NavLink>
 
             <NavLink
               to="/basket"
@@ -192,21 +192,21 @@ function Navigation() {
               </div>
 
               {/* Nav Links */}
-              <NavLink
-                to="/browse"
-                end={false}
-                onClick={() => setShowMobileMenu(false)}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-                    isActive || location.pathname.startsWith('/browse') || location.pathname.startsWith('/needs')
-                      ? 'text-blue-600 bg-blue-50 font-semibold'
-                      : 'text-slate-600 hover:bg-slate-100'
-                  }`
-                }
-              >
-                <Package className="w-5 h-5" strokeWidth={2} />
-                <span>Browse Needs</span>
-              </NavLink>
+            <NavLink
+              to="/"
+              end={true}
+              onClick={() => setShowMobileMenu(false)}
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
+                  isActive
+                    ? 'text-blue-600 bg-blue-50 font-semibold'
+                    : 'text-slate-600 hover:bg-slate-100'
+                }`
+              }
+            >
+              <Package className="w-5 h-5" strokeWidth={2} />
+              <span>Browse Needs</span>
+            </NavLink>
 
               <NavLink
                 to="/basket"
