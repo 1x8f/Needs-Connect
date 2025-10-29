@@ -9,14 +9,13 @@ import {
   HeartPulse,
   Package,
   TrendingUp,
-  Building2,
   Heart
 } from 'lucide-react';
 
 const CategorySelection = () => {
   const [stats, setStats] = useState({
     totalActiveNeeds: 0,
-    organizationCount: 0,
+    itemsFunded: 0,
     totalValue: 0
   });
   const [categoryStats, setCategoryStats] = useState({});
@@ -108,11 +107,11 @@ const CategorySelection = () => {
       // Calculate overall stats
       const totalActiveNeeds = needs.length;
       const totalValue = needs.reduce((sum, need) => sum + (need.cost * need.quantity), 0);
-      const uniqueOrgs = new Set(needs.map(need => need.org_type)).size;
+      const itemsFunded = needs.reduce((sum, need) => sum + need.quantity_fulfilled, 0);
       
       setStats({
         totalActiveNeeds,
-        organizationCount: uniqueOrgs,
+        itemsFunded,
         totalValue
       });
       
@@ -162,8 +161,8 @@ const CategorySelection = () => {
               <span className="font-semibold">{stats.totalActiveNeeds} Active Needs</span>
             </div>
             <div className="flex items-center gap-2 text-slate-700">
-              <Building2 className="w-5 h-5 text-blue-600" strokeWidth={2} />
-              <span className="font-semibold">{stats.organizationCount} Organizations</span>
+              <Package className="w-5 h-5 text-blue-600" strokeWidth={2} />
+              <span className="font-semibold">{stats.itemsFunded} Items Funded</span>
             </div>
             <div className="flex items-center gap-2 text-slate-700">
               <Heart className="w-5 h-5 text-red-500" strokeWidth={2} fill="currentColor" />
