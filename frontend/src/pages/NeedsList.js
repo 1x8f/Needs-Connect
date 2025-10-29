@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { getAllNeeds } from '../services/api';
 import {
   Search,
   SlidersHorizontal,
-  TrendingUp,
-  Users,
-  DollarSign,
   AlertCircle,
   Building2,
   CheckCircle,
@@ -196,19 +193,6 @@ const NeedsList = () => {
     }
   };
 
-  // Calculate stats
-  const calculateStats = () => {
-    if (!needs || needs.length === 0) {
-      return { activeNeeds: 0, totalItemsFunded: 0, totalValue: 0 };
-    }
-    const activeNeeds = needs.length;
-    const totalItemsFunded = needs.reduce((sum, need) => sum + need.quantity_fulfilled, 0);
-    const totalValue = needs.reduce((sum, need) => sum + (need.cost * need.quantity), 0);
-    return { activeNeeds, totalItemsFunded, totalValue };
-  };
-
-  const stats = calculateStats();
-
   // Filter and sort needs
   const filteredNeeds = (needs || [])
     .filter(need => {
@@ -326,42 +310,6 @@ const NeedsList = () => {
                 {showFilters ? <X className="w-4 h-4" strokeWidth={2} /> : <SlidersHorizontal className="w-4 h-4" strokeWidth={2} />}
                 <span className="hidden sm:inline">Filter</span>
               </button>
-            </div>
-          </div>
-          
-          {/* Stats Cards */}
-          <div className="flex items-center justify-center gap-6 flex-wrap">
-            {/* Active Needs */}
-            <div className="bg-white border border-slate-200 rounded-xl px-6 py-4 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200">
-              <div className="flex items-center gap-3">
-                <TrendingUp className="w-5 h-5 text-emerald-600" strokeWidth={2} />
-                <div className="text-left">
-                  <div className="text-2xl font-bold text-slate-900">{stats.activeNeeds}</div>
-                  <div className="text-sm text-slate-600 uppercase tracking-wide">Active Needs</div>
-                </div>
-              </div>
-            </div>
-            
-            {/* People Helped */}
-            <div className="bg-white border border-slate-200 rounded-xl px-6 py-4 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200">
-              <div className="flex items-center gap-3">
-                <Users className="w-5 h-5 text-blue-600" strokeWidth={2} />
-                <div className="text-left">
-                  <div className="text-2xl font-bold text-slate-900">{stats.totalItemsFunded}</div>
-                  <div className="text-sm text-slate-600 uppercase tracking-wide">Items Funded</div>
-                </div>
-              </div>
-            </div>
-            
-            {/* Total Value */}
-            <div className="bg-white border border-slate-200 rounded-xl px-6 py-4 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200">
-              <div className="flex items-center gap-3">
-                <DollarSign className="w-5 h-5 text-slate-600" strokeWidth={2} />
-                <div className="text-left">
-                  <div className="text-2xl font-bold text-slate-900">${stats.totalValue.toLocaleString()}</div>
-                  <div className="text-sm text-slate-600 uppercase tracking-wide">Total Value</div>
-                </div>
-              </div>
             </div>
           </div>
         </div>
