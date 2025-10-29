@@ -84,7 +84,7 @@ function Basket() {
         {/* Header */}
         <div className="mb-8">
           <Link 
-            to="/browse"
+            to="/"
             className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 font-medium transition-colors mb-4"
           >
             <ArrowLeft className="w-4 h-4" strokeWidth={2} />
@@ -111,7 +111,7 @@ function Basket() {
             </p>
             <div className="flex gap-4 justify-center">
               <Link
-                to="/browse"
+                to="/"
                 onClick={() => setCheckoutSuccess(false)}
                 className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
               >
@@ -133,7 +133,7 @@ function Basket() {
                 Browse available needs and add items to your basket to get started.
               </p>
               <Link
-                to="/browse"
+                to="/"
                 className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
               >
                 <Package className="w-5 h-5" strokeWidth={2} />
