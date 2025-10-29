@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { getAllNeeds } from '../services/api';
 import {
   Search,
@@ -18,8 +18,6 @@ import {
   Package,
   ShoppingCart,
   X,
-  ChevronRight,
-  ArrowLeft,
   GraduationCap,
   HeartPulse
 } from 'lucide-react';
@@ -295,24 +293,6 @@ const NeedsList = () => {
   return (
     <div className="min-h-screen bg-slate-50 pt-20">
       <div className="max-w-7xl mx-auto px-6 lg:px-8 py-12">
-        
-        {/* Breadcrumb Navigation */}
-        <nav className="flex items-center gap-2 text-sm text-slate-600 mb-6">
-          <Link to="/browse" className="hover:text-slate-900 transition-colors font-medium">
-            Categories
-          </Link>
-          <ChevronRight className="w-4 h-4" strokeWidth={2} />
-          <span className="text-slate-900 font-semibold">{currentCategory.name}</span>
-        </nav>
-        
-        {/* Change Category Button */}
-        <Link 
-          to="/browse"
-          className="inline-flex items-center gap-2 px-4 py-2 text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors mb-6 font-medium"
-        >
-          <ArrowLeft className="w-4 h-4" strokeWidth={2} />
-          Change Category
-        </Link>
         
         {/* HERO/HEADER SECTION */}
         <div className="text-center mb-12">
