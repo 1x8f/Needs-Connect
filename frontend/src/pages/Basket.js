@@ -1,438 +1,289 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { getBasket, updateBasketItem, removeFromBasket, clearBasket, checkout } from '../services/api';
+import { Link } from 'react-router-dom';
+import {
+  ShoppingCart,
+  Trash2,
+  Plus,
+  Minus,
+  ArrowLeft,
+  CheckCircle,
+  Package
+} from 'lucide-react';
 
-/**
- * Basket Page - View and manage basket items
- * Helpers can update quantities, remove items, and checkout
- */
 function Basket() {
-  const { user } = useAuth();
-  
-  // State management
   const [basket, setBasket] = useState([]);
-  const [totalCost, setTotalCost] = useState(0);
-  const [error, setError] = useState(null);
-  
-  // Update/remove states
-  const [updatingItems, setUpdatingItems] = useState({}); // Track which items are being updated
-  const [itemMessages, setItemMessages] = useState({}); // Success/error messages per item
-  
-  // Checkout state
-  const [checkingOut, setCheckingOut] = useState(false);
   const [checkoutSuccess, setCheckoutSuccess] = useState(false);
-  const [checkoutError, setCheckoutError] = useState(null);
-  const [checkoutTotal, setCheckoutTotal] = useState(0); // Store the checkout total
 
-  // Fetch basket on component load
+  // Load basket from localStorage
   useEffect(() => {
-    fetchBasket();
+    loadBasket();
+    
+    // Listen for storage changes (when items are added from other pages)
+    window.addEventListener('storage', loadBasket);
+    return () => window.removeEventListener('storage', loadBasket);
   }, []);
 
-  // Fetch basket from API
-  const fetchBasket = async () => {
+  const loadBasket = () => {
     try {
-      setError(null);
-      const response = await getBasket(user.id);
-
-      if (response.success) {
-        setBasket(response.basket);
-        setTotalCost(response.totalCost);
-      } else {
-        setError('Failed to load basket');
-      }
+      const savedBasket = localStorage.getItem('basket');
+      const items = savedBasket ? JSON.parse(savedBasket) : [];
+      setBasket(items);
     } catch (err) {
-      setError('Error connecting to server');
-      console.error('Error fetching basket:', err);
+      console.error('Error loading basket:', err);
+      setBasket([]);
     }
   };
 
-  // Handle quantity update
-  const handleUpdateQuantity = async (basketItemId, needId, newQuantity, availableQuantity, needTitle) => {
-    // VALIDATION
+  const saveBasket = (newBasket) => {
+    localStorage.setItem('basket', JSON.stringify(newBasket));
+    window.dispatchEvent(new Event('storage'));
+    setBasket(newBasket);
+  };
+
+  const updateQuantity = (itemId, change) => {
+    const newBasket = basket.map(item => {
+      if (item.id === itemId) {
+        const newQuantity = Math.max(1, item.quantity + change);
+        return { ...item, quantity: newQuantity };
+      }
+      return item;
+    });
+    saveBasket(newBasket);
+  };
+
+  const removeItem = (itemId) => {
+    const newBasket = basket.filter(item => item.id !== itemId);
+    saveBasket(newBasket);
+  };
+
+  const clearBasket = () => {
+    if (window.confirm('Clear your entire basket?')) {
+      saveBasket([]);
+    }
+  };
+
+  const handleCheckout = () => {
+    if (basket.length === 0) return;
     
-    // 1. Check if quantity is valid
-    if (newQuantity <= 0) {
-      setItemMessages(prev => ({
-        ...prev,
-        [basketItemId]: { type: 'error', text: 'Quantity must be greater than 0' }
-      }));
-      return;
-    }
-
-    // 2. Check if quantity exceeds available
-    if (newQuantity > availableQuantity) {
-      setItemMessages(prev => ({
-        ...prev,
-        [basketItemId]: { type: 'error', text: `Only ${availableQuantity} available` }
-      }));
-      return;
-    }
-
-    // Start loading for this item
-    setUpdatingItems(prev => ({ ...prev, [basketItemId]: true }));
-    setItemMessages(prev => ({ ...prev, [basketItemId]: null }));
-
-    try {
-      const response = await updateBasketItem(basketItemId, newQuantity);
-
-      if (response.success) {
-        // Success! Refresh the basket
-        await fetchBasket();
-        
-        setItemMessages(prev => ({
-          ...prev,
-          [basketItemId]: { type: 'success', text: 'Quantity updated!' }
-        }));
-
-        // Clear message after 2 seconds
-        setTimeout(() => {
-          setItemMessages(prev => ({
-            ...prev,
-            [basketItemId]: null
-          }));
-        }, 2000);
-
-      } else {
-        setItemMessages(prev => ({
-          ...prev,
-          [basketItemId]: { type: 'error', text: response.message || 'Failed to update' }
-        }));
-      }
-
-    } catch (err) {
-      console.error('Error updating basket item:', err);
-      setItemMessages(prev => ({
-        ...prev,
-        [basketItemId]: { type: 'error', text: 'Error connecting to server' }
-      }));
-    } finally {
-      setUpdatingItems(prev => ({ ...prev, [basketItemId]: false }));
+    if (window.confirm(`Checkout ${basket.length} item(s) for $${totalCost.toLocaleString()}?`)) {
+      // Clear basket and show success
+      saveBasket([]);
+      setCheckoutSuccess(true);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
-  // Handle remove item
-  const handleRemoveItem = async (basketItemId, needTitle) => {
-    if (!window.confirm(`Remove ${needTitle} from basket?`)) {
-      return;
-    }
-
-    setUpdatingItems(prev => ({ ...prev, [basketItemId]: true }));
-
-    try {
-      const response = await removeFromBasket(basketItemId);
-
-      if (response.success) {
-        // Success! Refresh the basket
-        await fetchBasket();
-      } else {
-        setItemMessages(prev => ({
-          ...prev,
-          [basketItemId]: { type: 'error', text: 'Failed to remove item' }
-        }));
-      }
-
-    } catch (err) {
-      console.error('Error removing item:', err);
-      setItemMessages(prev => ({
-        ...prev,
-        [basketItemId]: { type: 'error', text: 'Error connecting to server' }
-      }));
-    } finally {
-      setUpdatingItems(prev => ({ ...prev, [basketItemId]: false }));
-    }
-  };
-
-  // Handle clear basket
-  const handleClearBasket = async () => {
-    if (!window.confirm('Clear entire basket? This cannot be undone.')) {
-      return;
-    }
-
-    try {
-      const response = await clearBasket(user.id);
-
-      if (response.success) {
-        // Success! Refresh the basket
-        await fetchBasket();
-      } else {
-        setError('Failed to clear basket');
-      }
-
-    } catch (err) {
-      console.error('Error clearing basket:', err);
-      setError('Error connecting to server');
-    }
-  };
-
-  // Handle checkout
-  const handleCheckout = async () => {
-    if (basket.length === 0) {
-      setCheckoutError('Your basket is empty');
-      return;
-    }
-
-    if (!window.confirm(`Checkout and fund ${basket.length} item(s) for $${totalCost.toFixed(2)}?`)) {
-      return;
-    }
-
-    setCheckingOut(true);
-    setCheckoutError(null);
-
-    try {
-      const response = await checkout(user.id);
-
-      if (response.success) {
-        // SUCCESS! Save the total amount BEFORE clearing
-        setCheckoutTotal(response.totalAmount || totalCost);
-        setCheckoutSuccess(true);
-        
-        // Clear basket display
-        setBasket([]);
-        setTotalCost(0);
-
-        // Scroll to top to see success message
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-
-      } else {
-        setCheckoutError(response.message || 'Checkout failed');
-      }
-
-    } catch (err) {
-      console.error('Error during checkout:', err);
-      setCheckoutError('Error connecting to server');
-    } finally {
-      setCheckingOut(false);
-    }
-  };
-
-  // Get priority color
-  const getPriorityColor = (priority) => {
-    switch (priority) {
-      case 'urgent':
-        return 'bg-red-500';
-      case 'high':
-        return 'bg-orange-500';
-      case 'normal':
-        return 'bg-green-500';
-      default:
-        return 'bg-gray-500';
-    }
-  };
-
-  // Show error state (only on critical errors)
-  if (error && basket.length === 0) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-red-400 text-2xl mb-4">{error}</div>
-          <button
-            onClick={fetchBasket}
-            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg"
-          >
-            Try Again
-          </button>
-        </div>
-      </div>
-    );
-  }
+  // Calculate totals
+  const totalItems = basket.reduce((sum, item) => sum + item.quantity, 0);
+  const totalCost = basket.reduce((sum, item) => sum + (item.cost * item.quantity), 0);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 p-8">
-      {/* Header */}
-      <div className="max-w-6xl mx-auto mb-8">
-        <h1 className="text-4xl font-bold text-white mb-2">Your Basket</h1>
-        <p className="text-gray-300">Review and checkout your selected needs</p>
-      </div>
-
-      {/* Checkout Success Message */}
-      {checkoutSuccess && (
-        <div className="max-w-6xl mx-auto mb-6">
-          <div className="bg-green-900 border-2 border-green-500 rounded-lg p-6 text-center">
-            <h2 className="text-3xl font-bold text-green-200 mb-2">🎉 Checkout Successful!</h2>
-            <p className="text-green-300 text-lg">Thank you for funding these needs!</p>
-            <p className="text-green-400 mt-2">Total funded: ${checkoutTotal.toFixed(2)}</p>
-            <button
-              onClick={() => {
-                setCheckoutSuccess(false);
-                window.location.href = '/'; // Go back to needs list (we'll use router later)
-              }}
-              className="mt-4 px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg"
-            >
-              Browse More Needs
-            </button>
-          </div>
+    <div className="min-h-screen bg-slate-50 pt-20">
+      <div className="max-w-7xl mx-auto px-6 py-12">
+        
+        {/* Header */}
+        <div className="mb-8">
+          <Link 
+            to="/browse"
+            className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 font-medium transition-colors mb-4"
+          >
+            <ArrowLeft className="w-4 h-4" strokeWidth={2} />
+            Continue Shopping
+          </Link>
+          
+          <h1 className="text-5xl font-bold text-slate-900 mb-3 tracking-tight">
+            Your Basket
+          </h1>
+          <p className="text-xl text-slate-600">
+            Review and checkout your selected needs
+          </p>
         </div>
-      )}
 
-      {/* Checkout Error */}
-      {checkoutError && (
-        <div className="max-w-6xl mx-auto mb-6">
-          <div className="bg-red-900 border-2 border-red-500 rounded-lg p-4">
-            <p className="text-red-200">{checkoutError}</p>
+        {/* Checkout Success */}
+        {checkoutSuccess && (
+          <div className="bg-gradient-to-br from-emerald-50 to-green-50 border-2 border-emerald-200 rounded-2xl p-8 text-center mb-8 shadow-xl">
+            <div className="w-20 h-20 bg-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle className="w-12 h-12 text-white" strokeWidth={2} />
+            </div>
+            <h2 className="text-3xl font-bold text-slate-900 mb-3">Thank You for Your Support!</h2>
+            <p className="text-lg text-slate-700 mb-6">
+              Your donation of <span className="font-bold text-emerald-600">${totalCost.toLocaleString()}</span> will make a real difference.
+            </p>
+            <div className="flex gap-4 justify-center">
+              <Link
+                to="/browse"
+                onClick={() => setCheckoutSuccess(false)}
+                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+              >
+                Browse More Needs
+              </Link>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Empty Basket State */}
-      {basket.length === 0 && !checkoutSuccess && (
-        <div className="max-w-6xl mx-auto">
-          <div className="bg-gray-800 rounded-lg p-12 text-center">
-            <div className="text-6xl mb-4">🛒</div>
-            <h2 className="text-2xl font-bold text-white mb-2">Your basket is empty</h2>
-            <p className="text-gray-400 mb-6">Browse available needs and add items to your basket</p>
-            <button
-              onClick={() => window.location.href = '/'} // We'll use router later
-              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg"
-            >
-              Browse Needs
-            </button>
+        {/* Empty Basket State */}
+        {basket.length === 0 && !checkoutSuccess && (
+          <div className="bg-white border-2 border-dashed border-slate-300 rounded-2xl p-16 text-center">
+            <div className="max-w-md mx-auto">
+              <ShoppingCart className="w-20 h-20 text-slate-300 mx-auto mb-6" strokeWidth={1.5} />
+              <h2 className="text-2xl font-bold text-slate-900 mb-3">
+                Your basket is empty
+              </h2>
+              <p className="text-slate-600 mb-6">
+                Browse available needs and add items to your basket to get started.
+              </p>
+              <Link
+                to="/browse"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+              >
+                <Package className="w-5 h-5" strokeWidth={2} />
+                Browse Needs
+              </Link>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Basket Items */}
-      {basket.length > 0 && (
-        <div className="max-w-6xl mx-auto">
-          {/* Basket Items List */}
-          <div className="grid gap-6 mb-6">
-            {basket.map((item) => {
-              // Backend returns these specific property names:
-              // basket_id, basket_quantity, available_quantity, item_total
-              const basketId = item.basket_id;
-              const basketQuantity = item.basket_quantity;
-              const availableQuantity = item.available_quantity;
-              const itemTotal = parseFloat(item.item_total) || 0;
-
-              return (
-                <div
-                  key={basketId}
-                  className="bg-gray-800 rounded-lg p-6 shadow-lg"
-                >
-                  {/* Header with priority and remove button */}
+        {/* Basket Items */}
+        {basket.length > 0 && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            {/* Items List */}
+            <div className="lg:col-span-2 space-y-4">
+              {basket.map((item) => (
+                <div key={item.id} className="bg-white border-2 border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
+                  
+                  {/* Item Header */}
                   <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <span
-                        className={`${getPriorityColor(item.priority)} text-white text-xs font-bold px-3 py-1 rounded-full uppercase`}
-                      >
-                        {item.priority}
-                      </span>
-                      <span className="text-gray-400 text-sm">{item.category || 'General'}</span>
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold text-slate-900 mb-1">
+                        {item.title}
+                      </h3>
+                      <div className="flex items-center gap-2 text-sm text-slate-600">
+                        <span className="px-2 py-1 bg-slate-100 rounded-full text-xs font-medium capitalize">
+                          {item.category}
+                        </span>
+                        <span>•</span>
+                        <span className="capitalize">{item.organization}</span>
+                      </div>
                     </div>
-                    
                     <button
-                      onClick={() => handleRemoveItem(basketId, item.title)}
-                      disabled={updatingItems[basketId]}
-                      className="text-red-400 hover:text-red-300 font-bold disabled:opacity-50"
+                      onClick={() => removeItem(item.id)}
+                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      aria-label="Remove item"
                     >
-                      ✕ Remove
+                      <Trash2 className="w-5 h-5" strokeWidth={2} />
                     </button>
                   </div>
 
-                  {/* Title */}
-                  <h2 className="text-2xl font-bold text-white mb-2">{item.title}</h2>
-                  
-                  {/* Description */}
-                  {item.description && (
-                    <p className="text-gray-300 mb-4">{item.description}</p>
-                  )}
+                  {/* Price and Quantity */}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-slate-600 mb-1">Price per item</p>
+                      <p className="text-2xl font-bold text-slate-900">${item.cost}</p>
+                    </div>
 
-                  {/* Details Grid */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                    <div>
-                      <p className="text-gray-400 text-sm">Cost per item</p>
-                      <p className="text-white font-bold text-lg">${item.cost}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-400 text-sm">Your quantity</p>
-                      <p className="text-white font-bold text-lg">{basketQuantity}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-400 text-sm">Available total</p>
-                      <p className="text-white font-bold text-lg">{availableQuantity}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-400 text-sm">Item total</p>
-                      <p className="text-white font-bold text-lg">${itemTotal.toFixed(2)}</p>
-                    </div>
-                  </div>
-
-                  {/* Update Quantity Section */}
-                  <div className="border-t border-gray-700 pt-4">
-                    <div className="flex items-end gap-4">
-                      <div className="flex-1">
-                        <label className="block text-gray-300 text-sm mb-2">
-                          Update Quantity (max: {availableQuantity})
-                        </label>
-                        <input
-                          type="number"
-                          min="1"
-                          max={availableQuantity}
-                          defaultValue={basketQuantity}
-                          id={`quantity-${basketId}`}
-                          className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
+                    {/* Quantity Controls */}
+                    <div className="flex items-center gap-3">
                       <button
-                        onClick={() => {
-                          const newQuantity = parseInt(document.getElementById(`quantity-${basketId}`).value);
-                          handleUpdateQuantity(basketId, item.need_id, newQuantity, availableQuantity, item.title);
-                        }}
-                        disabled={updatingItems[basketId]}
-                        className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white font-bold rounded-lg transition-colors"
+                        onClick={() => updateQuantity(item.id, -1)}
+                        disabled={item.quantity <= 1}
+                        className="w-10 h-10 flex items-center justify-center bg-slate-100 hover:bg-slate-200 disabled:opacity-30 disabled:cursor-not-allowed rounded-lg transition-colors"
+                        aria-label="Decrease quantity"
                       >
-                        {updatingItems[basketId] ? 'Updating...' : 'Update'}
+                        <Minus className="w-4 h-4 text-slate-700" strokeWidth={2} />
+                      </button>
+                      
+                      <span className="text-xl font-bold text-slate-900 w-12 text-center">
+                        {item.quantity}
+                      </span>
+                      
+                      <button
+                        onClick={() => updateQuantity(item.id, 1)}
+                        className="w-10 h-10 flex items-center justify-center bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
+                        aria-label="Increase quantity"
+                      >
+                        <Plus className="w-4 h-4 text-slate-700" strokeWidth={2} />
                       </button>
                     </div>
 
-                    {/* Item Message */}
-                    {itemMessages[basketId] && (
-                      <div className={`mt-3 p-3 rounded-lg ${
-                        itemMessages[basketId].type === 'success'
-                          ? 'bg-green-900 text-green-200'
-                          : 'bg-red-900 text-red-200'
-                      }`}>
-                        {itemMessages[basketId].text}
-                      </div>
-                    )}
+                    {/* Item Total */}
+                    <div className="text-right">
+                      <p className="text-sm text-slate-600 mb-1">Item total</p>
+                      <p className="text-2xl font-bold text-blue-600">
+                        ${(item.cost * item.quantity).toLocaleString()}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              );
-            })}
-          </div>
+              ))}
+            </div>
 
-          {/* Summary and Checkout Section */}
-          <div className="bg-gray-800 rounded-lg p-6 shadow-lg sticky bottom-8">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-              {/* Summary */}
-              <div>
-                <p className="text-gray-400 text-sm">Total Items: {basket.length}</p>
-                <p className="text-3xl font-bold text-white">Total: ${totalCost.toFixed(2)}</p>
-              </div>
+            {/* Summary Sidebar */}
+            <div className="lg:col-span-1">
+              <div className="sticky top-24 bg-white border-2 border-slate-200 rounded-2xl p-6 shadow-xl">
+                <h2 className="text-xl font-bold text-slate-900 mb-6">Order Summary</h2>
+                
+                {/* Stats */}
+                <div className="space-y-4 mb-6 pb-6 border-b border-slate-200">
+                  <div className="flex justify-between text-slate-700">
+                    <span>Items:</span>
+                    <span className="font-semibold">{totalItems}</span>
+                  </div>
+                  <div className="flex justify-between text-slate-700">
+                    <span>Subtotal:</span>
+                    <span className="font-semibold">${totalCost.toLocaleString()}</span>
+                  </div>
+                </div>
 
-              {/* Actions */}
-              <div className="flex gap-4">
+                {/* Total */}
+                <div className="mb-6 pb-6 border-b border-slate-200">
+                  <div className="flex justify-between items-baseline">
+                    <span className="text-lg font-bold text-slate-900">Total:</span>
+                    <span className="text-3xl font-bold text-slate-900">
+                      ${totalCost.toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Checkout Button */}
                 <button
-                  onClick={handleClearBasket}
-                  className="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white font-bold rounded-lg transition-colors"
+                  onClick={handleCheckout}
+                  className="w-full h-14 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold text-lg rounded-xl shadow-xl shadow-blue-500/40 hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 mb-3"
+                >
+                  <CheckCircle className="w-6 h-6" strokeWidth={2} />
+                  Checkout
+                </button>
+
+                {/* Clear Basket */}
+                <button
+                  onClick={clearBasket}
+                  className="w-full h-12 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition-all duration-200"
                 >
                   Clear Basket
                 </button>
-                <button
-                  onClick={handleCheckout}
-                  disabled={checkingOut || basket.length === 0}
-                  className="px-8 py-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold rounded-lg transition-colors text-lg"
-                >
-                  {checkingOut ? 'Processing...' : `Checkout ($${totalCost.toFixed(2)})`}
-                </button>
+
+                {/* Trust Indicators */}
+                <div className="mt-6 pt-6 border-t border-slate-200 space-y-3">
+                  <div className="flex items-center gap-3 text-sm text-slate-600">
+                    <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                      <CheckCircle className="w-4 h-4 text-emerald-600" strokeWidth={2} />
+                    </div>
+                    <span>Secure checkout</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-sm text-slate-600">
+                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                      <CheckCircle className="w-4 h-4 text-blue-600" strokeWidth={2} />
+                    </div>
+                    <span>100% goes to community needs</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
 
 export default Basket;
-

@@ -5,6 +5,23 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Line Clamp Utility */
+@layer utilities {
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
 /* Apple-Style Custom Styles */
 @layer base {
   body {
@@ -16,10 +33,8 @@
   }
 }
 
-/* Smooth Transitions */
-* {
-  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
-}
+/* Smooth Transitions - Disabled for better performance */
+/* Will add transitions individually where needed */
 
 /* Custom animations for Priority System */
 @keyframes pulse-slow {
@@ -76,20 +91,99 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Custom Scrollbar */
+/* Custom Scrollbar - Light Theme */
 ::-webkit-scrollbar {
   width: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #1a1a1a;
+  background: #f1f5f9;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #3b82f6;
+  background: #94a3b8;
   border-radius: 5px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #2563eb;
+  background: #64748b;
+}
+
+/* Floating Animations for Background Elements */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) translateX(0);
+  }
+  33% {
+    transform: translateY(-20px) translateX(10px);
+  }
+  66% {
+    transform: translateY(10px) translateX(-10px);
+  }
+}
+
+@keyframes float-delayed {
+  0%, 100% {
+    transform: translateY(0) translateX(0);
+  }
+  33% {
+    transform: translateY(15px) translateX(-15px);
+  }
+  66% {
+    transform: translateY(-10px) translateX(10px);
+  }
+}
+
+@keyframes float-slow {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-15px) scale(1.05);
+  }
+}
+
+.animate-float {
+  animation: float 15s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+  animation: float-delayed 20s ease-in-out infinite;
+}
+
+.animate-float-slow {
+  animation: float-slow 25s ease-in-out infinite;
+}
+
+/* Pulse Border Animation for Urgent Items */
+@keyframes pulse-border {
+  0%, 100% {
+    border-color: rgb(239, 68, 68);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+  }
+  50% {
+    border-color: rgb(220, 38, 38);
+    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+  }
+}
+
+.animate-pulse-border {
+  animation: pulse-border 2s ease-in-out infinite;
+}
+
+/* Slide In Animation for Activity Feed */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Hover Scale for Activity Items */
+.hover\:scale-102:hover {
+  transform: scale(1.02);
 }

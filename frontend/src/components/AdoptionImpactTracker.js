@@ -59,33 +59,33 @@ function AdoptionImpactTracker({ need }) {
 
   if (loading) {
     return (
-      <div className="bg-gradient-to-br from-purple-900 to-blue-900 rounded-lg p-6 border-2 border-purple-500 shadow-lg">
-        <p className="text-purple-200 text-center">Loading adoption impact...</p>
+      <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-2xl p-6 border-2 border-purple-200 shadow-md mt-6">
+        <p className="text-purple-700 text-center font-medium">Loading adoption impact...</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-gradient-to-br from-purple-900 to-blue-900 rounded-lg p-6 border-2 border-purple-500 shadow-xl mt-6">
+    <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-2xl p-8 border-2 border-purple-300 shadow-lg mt-6">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
+      <div className="flex items-center gap-4 mb-8">
         <span className="text-5xl">🐾</span>
         <div>
-          <h3 className="text-2xl font-bold text-white">Adoption Impact Tracker</h3>
-          <p className="text-purple-200 text-sm">See how your donations help animals find homes</p>
+          <h3 className="text-3xl font-bold text-slate-900">Adoption Impact Tracker</h3>
+          <p className="text-purple-700 text-base mt-1">See how your donations help animals find homes</p>
         </div>
       </div>
 
       {/* Main Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         {/* Animals Ready */}
-        <div className="bg-purple-950 rounded-lg p-6 border border-purple-400">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-purple-300 text-lg font-semibold">Animals Adoption-Ready</span>
-            <span className="text-6xl">🏠</span>
+        <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border-2 border-purple-300 shadow-md">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-purple-800 text-lg font-bold">Animals Adoption-Ready</span>
+            <span className="text-5xl">🏠</span>
           </div>
-          <p className="text-5xl font-bold text-white mb-2">{impact.animalsReady}</p>
-          <p className="text-purple-300 text-sm">
+          <p className="text-5xl font-extrabold text-slate-900 mb-3">{impact.animalsReady}</p>
+          <p className="text-purple-700 text-sm font-medium">
             {impact.animalsReady === 0 
               ? 'Be the first to help an animal!' 
               : impact.animalsReady === 1
@@ -96,52 +96,52 @@ function AdoptionImpactTracker({ need }) {
         </div>
 
         {/* Total Funded */}
-        <div className="bg-purple-950 rounded-lg p-6 border border-purple-400">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-purple-300 text-lg font-semibold">Total Funded</span>
-            <span className="text-6xl">💰</span>
+        <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border-2 border-blue-300 shadow-md">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-blue-800 text-lg font-bold">Total Funded</span>
+            <span className="text-5xl">💰</span>
           </div>
-          <p className="text-5xl font-bold text-white mb-2">${impact.totalFunded.toFixed(2)}</p>
-          <p className="text-purple-300 text-sm">Helping animals get ready for adoption</p>
+          <p className="text-5xl font-extrabold text-slate-900 mb-3">${impact.totalFunded.toFixed(2)}</p>
+          <p className="text-blue-700 text-sm font-medium">Helping animals get ready for adoption</p>
         </div>
       </div>
 
       {/* Cost Breakdown */}
-      <div className="bg-purple-950 rounded-lg p-6 border border-purple-400 mb-6">
-        <h4 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+      <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border-2 border-slate-300 mb-8 shadow-md">
+        <h4 className="text-xl font-bold text-slate-900 mb-5 flex items-center gap-2">
           <span>📋</span>
           <span>What Makes an Animal Adoption-Ready?</span>
         </h4>
         
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
+        <div className="space-y-4">
+          <div className="flex items-center justify-between bg-blue-50 p-3 rounded-xl border border-blue-200">
             <div className="flex items-center gap-3">
               <span className="text-2xl">🏥</span>
-              <span className="text-purple-200">Veterinary Health Check</span>
+              <span className="text-slate-700 font-medium">Veterinary Health Check</span>
             </div>
-            <span className="text-white font-bold">$50</span>
+            <span className="text-slate-900 font-bold text-lg">$50</span>
           </div>
 
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between bg-purple-50 p-3 rounded-xl border border-purple-200">
             <div className="flex items-center gap-3">
               <span className="text-2xl">💉</span>
-              <span className="text-purple-200">Vaccinations (Full Series)</span>
+              <span className="text-slate-700 font-medium">Vaccinations (Full Series)</span>
             </div>
-            <span className="text-white font-bold">$40</span>
+            <span className="text-slate-900 font-bold text-lg">$40</span>
           </div>
 
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between bg-cyan-50 p-3 rounded-xl border border-cyan-200">
             <div className="flex items-center gap-3">
               <span className="text-2xl">🩺</span>
-              <span className="text-purple-200">Spay/Neuter Surgery</span>
+              <span className="text-slate-700 font-medium">Spay/Neuter Surgery</span>
             </div>
-            <span className="text-white font-bold">$60</span>
+            <span className="text-slate-900 font-bold text-lg">$60</span>
           </div>
 
-          <div className="border-t-2 border-purple-500 pt-3 mt-3">
-            <div className="flex items-center justify-between">
-              <span className="text-purple-100 font-bold text-lg">Total Per Animal</span>
-              <span className="text-white font-bold text-2xl">${COST_PER_ANIMAL}</span>
+          <div className="border-t-2 border-slate-300 pt-4 mt-4">
+            <div className="flex items-center justify-between bg-gradient-to-r from-purple-100 to-blue-100 p-4 rounded-xl border-2 border-purple-300">
+              <span className="text-slate-900 font-bold text-lg">Total Per Animal</span>
+              <span className="text-slate-900 font-extrabold text-3xl">${COST_PER_ANIMAL}</span>
             </div>
           </div>
         </div>
@@ -149,33 +149,33 @@ function AdoptionImpactTracker({ need }) {
 
       {/* Progress to Next Animal */}
       {impact.nextAnimalCost > 0 && (
-        <div className="bg-gradient-to-r from-blue-900 to-purple-900 rounded-lg p-6 border-2 border-blue-400">
-          <div className="flex items-center justify-between mb-3">
-            <h4 className="text-xl font-bold text-white flex items-center gap-2">
+        <div className="bg-gradient-to-br from-blue-100 to-purple-100 rounded-2xl p-6 border-2 border-blue-300 shadow-md">
+          <div className="flex items-center justify-between mb-4">
+            <h4 className="text-xl font-bold text-slate-900 flex items-center gap-2">
               <span>🎯</span>
               <span>Progress to Next Animal</span>
             </h4>
-            <span className="text-blue-200 font-bold text-lg">{impact.progressToNext}%</span>
+            <span className="text-blue-700 font-bold text-2xl">{impact.progressToNext}%</span>
           </div>
 
           {/* Progress Bar */}
-          <div className="w-full bg-gray-700 rounded-full h-6 mb-3 overflow-hidden">
+          <div className="w-full bg-slate-200 rounded-full h-4 mb-4 overflow-hidden shadow-inner">
             <div 
-              className="bg-gradient-to-r from-green-400 to-blue-500 h-6 rounded-full transition-all duration-500 flex items-center justify-center"
+              className="bg-gradient-to-r from-blue-500 to-purple-600 h-4 rounded-full transition-all duration-500 flex items-center justify-center shadow-sm"
               style={{ width: `${impact.progressToNext}%` }}
             >
-              {impact.progressToNext > 10 && (
-                <span className="text-white font-bold text-sm">{impact.progressToNext}%</span>
+              {impact.progressToNext > 15 && (
+                <span className="text-white font-bold text-xs">{impact.progressToNext}%</span>
               )}
             </div>
           </div>
 
-          <p className="text-blue-200 text-center">
-            <span className="font-bold text-white">${impact.nextAnimalCost.toFixed(2)}</span> more needed to prepare the next animal for adoption!
+          <p className="text-slate-700 text-center font-medium">
+            <span className="font-bold text-slate-900 text-lg">${impact.nextAnimalCost.toFixed(2)}</span> more needed to prepare the next animal for adoption!
           </p>
 
           {impact.progressToNext >= 50 && (
-            <p className="text-green-300 text-center text-sm mt-2 font-bold">
+            <p className="text-green-700 text-center text-sm mt-3 font-bold bg-green-100 p-2 rounded-lg border border-green-300">
               🌟 More than halfway there! Keep going!
             </p>
           )}
@@ -184,18 +184,18 @@ function AdoptionImpactTracker({ need }) {
 
       {/* Call to Action */}
       {impact.animalsReady === 0 && (
-        <div className="bg-yellow-900 border-2 border-yellow-500 rounded-lg p-4 mt-6">
-          <p className="text-yellow-200 text-center font-bold">
+        <div className="bg-yellow-100 border-2 border-yellow-400 rounded-2xl p-5 mt-6 shadow-md">
+          <p className="text-yellow-900 text-center font-bold text-lg">
             🐕 Be the first to help an animal! Your donation will directly contribute to preparing animals for their forever homes. 🐈
           </p>
         </div>
       )}
 
       {impact.animalsReady > 0 && (
-        <div className="bg-green-900 border-2 border-green-500 rounded-lg p-4 mt-6">
-          <p className="text-green-200 text-center">
-            <span className="font-bold text-white">🎉 Amazing! </span>
-            Thanks to donations like yours, <span className="font-bold text-white">{impact.animalsReady}</span> 
+        <div className="bg-green-100 border-2 border-green-400 rounded-2xl p-5 mt-6 shadow-md">
+          <p className="text-green-900 text-center font-medium text-lg">
+            <span className="font-extrabold">🎉 Amazing! </span>
+            Thanks to donations like yours, <span className="font-bold">{impact.animalsReady}</span> 
             {impact.animalsReady === 1 ? ' animal is' : ' animals are'} ready to find loving homes!
           </p>
         </div>

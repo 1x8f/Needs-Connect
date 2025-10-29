@@ -3,7 +3,9 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Navigation from './components/Navigation';
 import Login from './pages/Login';
+import CategorySelection from './pages/CategorySelection';
 import NeedsList from './pages/NeedsList';
+import NeedDetails from './pages/NeedDetails';
 import Basket from './pages/Basket';
 import ManagerDashboard from './pages/ManagerDashboard';
 import AddNeed from './pages/AddNeed';
@@ -15,8 +17,8 @@ function ProtectedRoute({ children }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-900 flex items-center justify-center">
-        <div className="text-white text-2xl">Loading...</div>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-slate-900 text-2xl">Loading...</div>
       </div>
     );
   }
@@ -30,8 +32,8 @@ function ManagerRoute({ children }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-900 flex items-center justify-center">
-        <div className="text-white text-2xl">Loading...</div>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-slate-900 text-2xl">Loading...</div>
       </div>
     );
   }
@@ -52,60 +54,85 @@ function AppRoutes() {
   const { isAuthenticated } = useAuth();
 
   return (
-    <div>
-      {/* Only show navigation if authenticated */}
+    <div className="min-h-screen bg-slate-50">
+      {/* Top Navigation - Only show if authenticated */}
       {isAuthenticated && <Navigation />}
       
+      {/* Main Content Area */}
       <Routes>
-        {/* Public Route */}
-        <Route path="/login" element={<Login />} />
+          {/* Public Route */}
+          <Route path="/login" element={<Login />} />
 
-        {/* Protected Routes (Require Authentication) */}
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <NeedsList />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/basket"
-          element={
-            <ProtectedRoute>
-              <Basket />
-            </ProtectedRoute>
-          }
-        />
+          {/* Protected Routes (Require Authentication) */}
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <CategorySelection />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/browse"
+            element={
+              <ProtectedRoute>
+                <CategorySelection />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/browse/category/:categorySlug"
+            element={
+              <ProtectedRoute>
+                <NeedsList />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/needs/:needId"
+            element={
+              <ProtectedRoute>
+                <NeedDetails />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/basket"
+            element={
+              <ProtectedRoute>
+                <Basket />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* Manager-Only Routes */}
-        <Route
-          path="/manager"
-          element={
-            <ManagerRoute>
-              <ManagerDashboard />
-            </ManagerRoute>
-          }
-        />
-        <Route
-          path="/manager/add-need"
-          element={
-            <ManagerRoute>
-              <AddNeed />
-            </ManagerRoute>
-          }
-        />
-        <Route
-          path="/manager/edit-need/:needId"
-          element={
-            <ManagerRoute>
-              <EditNeed />
-            </ManagerRoute>
-          }
-        />
+          {/* Manager-Only Routes */}
+          <Route
+            path="/manager"
+            element={
+              <ManagerRoute>
+                <ManagerDashboard />
+              </ManagerRoute>
+            }
+          />
+          <Route
+            path="/manager/add-need"
+            element={
+              <ManagerRoute>
+                <AddNeed />
+              </ManagerRoute>
+            }
+          />
+          <Route
+            path="/manager/edit-need/:needId"
+            element={
+              <ManagerRoute>
+                <EditNeed />
+              </ManagerRoute>
+            }
+          />
 
-        {/* Catch all - redirect to home or login */}
-        <Route path="*" element={<Navigate to={isAuthenticated ? "/" : "/login"} />} />
+          {/* Catch all - redirect to home or login */}
+          <Route path="*" element={<Navigate to={isAuthenticated ? "/" : "/login"} />} />
       </Routes>
     </div>
   );
