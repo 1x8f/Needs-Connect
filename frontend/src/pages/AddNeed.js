@@ -165,48 +165,28 @@ function AddNeed() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 p-8">
+    <div className="min-h-screen bg-white p-6 pt-16">
       <div className="max-w-3xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">Add New Need</h1>
-          <p className="text-gray-300">Create a new need for your organization</p>
+        <div className="mb-4">
+          <h1 className="text-2xl font-bold">Add Need</h1>
         </div>
 
         {/* Success Message */}
         {success && (
-          <div className="bg-green-900 border-2 border-green-500 rounded-lg p-6 mb-6">
-            <h2 className="text-2xl font-bold text-green-200 mb-2">✅ Need Created Successfully!</h2>
-            <p className="text-green-300 mb-4">Your need has been added to your cupboard and is now visible to helpers.</p>
-            <div className="flex gap-4">
-              <button
-                onClick={() => setSuccess(false)}
-                className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg"
-              >
-                Add Another Need
-              </button>
-              <button
-                onClick={() => window.location.href = '/manager'}
-                className="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white font-bold rounded-lg"
-              >
-                Back to Cupboard
-              </button>
-            </div>
-          </div>
+          <div className="border rounded p-4 mb-4 text-sm">Created. <button onClick={() => window.location.href = '/manager'} className="text-blue-700">Back to Manager</button></div>
         )}
 
         {/* Error Message */}
         {error && (
-          <div className="bg-red-900 border-2 border-red-500 rounded-lg p-4 mb-6">
-            <p className="text-red-200 font-bold">{error}</p>
-          </div>
+          <div className="border rounded p-3 mb-4 text-sm text-red-700">{error}</div>
         )}
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="bg-gray-800 rounded-lg p-6 shadow-lg">
+        <form onSubmit={handleSubmit} className="border rounded p-4">
           {/* Title */}
           <div className="mb-6">
-            <label className="block text-white text-sm font-bold mb-2">
+            <label className="block text-sm font-bold mb-1">
               Title <span className="text-red-500">*</span>
             </label>
             <input
@@ -215,18 +195,16 @@ function AddNeed() {
               value={formData.title}
               onChange={handleChange}
               placeholder="e.g., Rice - 50kg bags"
-              className={`w-full px-4 py-3 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 ${
-                validationErrors.title ? 'ring-2 ring-red-500' : 'focus:ring-blue-500'
-              }`}
+              className={`w-full px-3 py-2 border rounded ${validationErrors.title ? 'border-red-500' : ''}`}
             />
             {validationErrors.title && (
-              <p className="text-red-400 text-sm mt-2">{validationErrors.title}</p>
+              <p className="text-red-600 text-xs mt-1">{validationErrors.title}</p>
             )}
           </div>
 
           {/* Description */}
           <div className="mb-6">
-            <label className="block text-white text-sm font-bold mb-2">
+            <label className="block text-sm font-bold mb-1">
               Description
             </label>
             <textarea
@@ -235,16 +213,16 @@ function AddNeed() {
               onChange={handleChange}
               placeholder="Detailed description of what you need and why..."
               rows="4"
-              className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded"
             />
-            <p className="text-gray-400 text-sm mt-1">Optional but recommended - helps helpers understand your need</p>
+            <p className="text-slate-600 text-xs mt-1">Optional.</p>
           </div>
 
           {/* Cost and Quantity Row */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             {/* Cost */}
             <div>
-              <label className="block text-white text-sm font-bold mb-2">
+              <label className="block text-sm font-bold mb-1">
                 Cost per Item ($) <span className="text-red-500">*</span>
               </label>
               <input
@@ -255,18 +233,16 @@ function AddNeed() {
                 placeholder="25.00"
                 step="0.01"
                 min="0"
-                className={`w-full px-4 py-3 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 ${
-                  validationErrors.cost ? 'ring-2 ring-red-500' : 'focus:ring-blue-500'
-                }`}
+                className={`w-full px-3 py-2 border rounded ${validationErrors.cost ? 'border-red-500' : ''}`}
               />
               {validationErrors.cost && (
-                <p className="text-red-400 text-sm mt-2">{validationErrors.cost}</p>
+                <p className="text-red-600 text-xs mt-1">{validationErrors.cost}</p>
               )}
             </div>
 
             {/* Quantity */}
             <div>
-              <label className="block text-white text-sm font-bold mb-2">
+              <label className="block text-sm font-bold mb-1">
                 Quantity Needed <span className="text-red-500">*</span>
               </label>
               <input
@@ -276,12 +252,10 @@ function AddNeed() {
                 onChange={handleChange}
                 placeholder="50"
                 min="1"
-                className={`w-full px-4 py-3 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 ${
-                  validationErrors.quantity ? 'ring-2 ring-red-500' : 'focus:ring-blue-500'
-                }`}
+                className={`w-full px-3 py-2 border rounded ${validationErrors.quantity ? 'border-red-500' : ''}`}
               />
               {validationErrors.quantity && (
-                <p className="text-red-400 text-sm mt-2">{validationErrors.quantity}</p>
+                <p className="text-red-600 text-xs mt-1">{validationErrors.quantity}</p>
               )}
             </div>
           </div>
@@ -290,89 +264,80 @@ function AddNeed() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             {/* Priority */}
             <div>
-              <label className="block text-white text-sm font-bold mb-2">
+              <label className="block text-sm font-bold mb-1">
                 Priority <span className="text-red-500">*</span>
               </label>
               <select
                 name="priority"
                 value={formData.priority}
                 onChange={handleChange}
-                className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded"
               >
-                <option value="normal">Normal - Standard need</option>
-                <option value="high">High - Important need</option>
-                <option value="urgent">Urgent - Critical/time-sensitive</option>
+                <option value="normal">Normal</option>
+                <option value="high">High</option>
+                <option value="urgent">Urgent</option>
               </select>
-              <p className="text-gray-400 text-sm mt-1">Urgent items appear first to helpers</p>
+              <p className="text-slate-600 text-xs mt-1">Used to sort.</p>
             </div>
 
             {/* Category */}
             <div>
-              <label className="block text-white text-sm font-bold mb-2">
+              <label className="block text-sm font-bold mb-1">
                 Category <span className="text-red-500">*</span>
               </label>
               <select
                 name="category"
                 value={formData.category}
                 onChange={handleChange}
-                className={`w-full px-4 py-3 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 ${
-                  validationErrors.category ? 'ring-2 ring-red-500' : 'focus:ring-blue-500'
-                }`}
+                className={`w-full px-3 py-2 border rounded ${validationErrors.category ? 'border-red-500' : ''}`}
               >
                 <option value="">Select a category...</option>
-                <option value="food">🍽️ Food & Nutrition</option>
-                <option value="clothing">👕 Clothing & Essentials</option>
-                <option value="shelter">🏠 Shelter & Housing</option>
-                <option value="education">📚 Education</option>
-                <option value="healthcare">❤️ Healthcare</option>
-                <option value="other">🔷 Other Causes</option>
+                <option value="food">Food</option>
+                <option value="clothing">Clothing</option>
+                <option value="shelter">Shelter</option>
+                <option value="education">Education</option>
+                <option value="healthcare">Healthcare</option>
+                <option value="other">Other</option>
               </select>
               {validationErrors.category && (
-                <p className="text-red-400 text-sm mt-2">{validationErrors.category}</p>
-              )}
-              {!validationErrors.category && (
-                <p className="text-gray-400 text-sm mt-1">Helps helpers find your need by category</p>
+                <p className="text-red-600 text-xs mt-1">{validationErrors.category}</p>
               )}
             </div>
           </div>
 
           {/* Organization Type */}
           <div className="mb-6">
-            <label className="block text-white text-sm font-bold mb-2">
+            <label className="block text-sm font-bold mb-1">
               Organization Type <span className="text-red-500">*</span>
             </label>
             <select
               name="org_type"
               value={formData.org_type}
               onChange={handleChange}
-              className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded"
             >
-              <option value="food_bank">🍽️ Food Bank - Food assistance programs</option>
-              <option value="animal_shelter">🐾 Animal Shelter - Animal care and adoption</option>
-              <option value="hospital">🏥 Hospital - Medical care and supplies</option>
-              <option value="school">📚 School - Educational materials and support</option>
-              <option value="homeless_shelter">🏠 Homeless Shelter - Housing and basic needs</option>
-              <option value="disaster_relief">🌍 Disaster Relief - Emergency assistance</option>
-              <option value="other">🔷 Other - General non-profit</option>
+              <option value="food_bank">Food Bank</option>
+              <option value="animal_shelter">Animal Shelter</option>
+              <option value="hospital">Hospital</option>
+              <option value="school">School</option>
+              <option value="homeless_shelter">Homeless Shelter</option>
+              <option value="disaster_relief">Disaster Relief</option>
+              <option value="other">Other</option>
             </select>
-            <p className="text-gray-400 text-sm mt-1">Select your organization type for customized features</p>
+            <p className="text-slate-600 text-xs mt-1">Used for display only.</p>
           </div>
 
           {/* Total Cost Preview */}
           {formData.cost && formData.quantity && !isNaN(formData.cost) && !isNaN(formData.quantity) && (
-            <div className="bg-blue-900 border-2 border-blue-500 rounded-lg p-4 mb-6">
-              <p className="text-blue-200">
-                <span className="font-bold">Total if fully funded:</span> ${(parseFloat(formData.cost) * parseInt(formData.quantity)).toFixed(2)}
-              </p>
-            </div>
+            <div className="border rounded p-3 mb-4 text-sm">Total if fully funded: ${(parseFloat(formData.cost) * parseInt(formData.quantity)).toFixed(2)}</div>
           )}
 
           {/* Action Buttons */}
-          <div className="flex gap-4">
+          <div className="flex gap-2">
             <button
               type="submit"
               disabled={submitting}
-              className="flex-1 px-6 py-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold rounded-lg text-lg transition-colors"
+              className="px-4 py-2 border rounded text-sm"
             >
               {submitting ? 'Creating Need...' : 'Create Need'}
             </button>
@@ -380,7 +345,7 @@ function AddNeed() {
               type="button"
               onClick={handleCancel}
               disabled={submitting}
-              className="px-6 py-3 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-500 text-white font-bold rounded-lg transition-colors"
+              className="px-4 py-2 border rounded text-sm"
             >
               Cancel
             </button>

@@ -1,18 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import {
-  ShoppingCart,
-  Trash2,
-  Plus,
-  Minus,
-  ArrowLeft,
-  CheckCircle,
-  Package
-} from 'lucide-react';
+import { getNeedById, updateNeed } from '../services/api';
+import { ShoppingCart, Trash2, Plus, Minus, CheckCircle, Package } from 'lucide-react';
 
 function Basket() {
   const [basket, setBasket] = useState([]);
   const [checkoutSuccess, setCheckoutSuccess] = useState(false);
+  const [lastCheckoutTotal, setLastCheckoutTotal] = useState(0);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   // Load basket from localStorage
   useEffect(() => {
@@ -64,96 +59,82 @@ function Basket() {
 
   const handleCheckout = () => {
     if (basket.length === 0) return;
-    
-    if (window.confirm(`Checkout ${basket.length} item(s) for $${totalCost.toLocaleString()}?`)) {
-      // Clear basket and show success
-      saveBasket([]);
-      setCheckoutSuccess(true);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    setShowConfirm(true);
   };
+
+  const confirmCheckout = async () => {
+    setLastCheckoutTotal(totalCost);
+    try {
+      await Promise.all(
+        basket.map(async (item) => {
+          try {
+            const resp = await getNeedById(item.id);
+            const need = resp?.need || {};
+            const currentFulfilled = Number(need.quantity_fulfilled || 0);
+            const totalQuantity = Number(need.quantity || 0);
+            const delta = Number(item.quantity || 0);
+            const newFulfilled = Math.min(totalQuantity, currentFulfilled + delta);
+            await updateNeed(item.id, { quantity_fulfilled: newFulfilled });
+          } catch (e) {
+            console.error('Failed to update need fulfillment', item.id, e);
+          }
+        })
+      );
+    } catch (e) {
+      console.error('Batch update failed', e);
+    }
+
+    saveBasket([]);
+    setCheckoutSuccess(true);
+    setShowConfirm(false);
+    window.dispatchEvent(new Event('needs-updated'));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const cancelCheckout = () => setShowConfirm(false);
 
   // Calculate totals
   const totalItems = basket.reduce((sum, item) => sum + item.quantity, 0);
   const totalCost = basket.reduce((sum, item) => sum + (item.cost * item.quantity), 0);
 
   return (
-    <div className="min-h-screen bg-slate-50 pt-20">
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        
+    <div className="min-h-screen bg-white p-6 pt-16">
+      <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <Link 
-            to="/"
-            className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 font-medium transition-colors mb-4"
-          >
-            <ArrowLeft className="w-4 h-4" strokeWidth={2} />
-            Continue Shopping
-          </Link>
-          
-          <h1 className="text-5xl font-bold text-slate-900 mb-3 tracking-tight">
-            Your Basket
-          </h1>
-          <p className="text-xl text-slate-600">
-            Review and checkout your selected needs
-          </p>
+        <div className="mb-4">
+          <h1 className="text-2xl font-bold">Basket</h1>
         </div>
 
         {/* Checkout Success */}
         {checkoutSuccess && (
-          <div className="bg-gradient-to-br from-emerald-50 to-green-50 border-2 border-emerald-200 rounded-2xl p-8 text-center mb-8 shadow-xl">
-            <div className="w-20 h-20 bg-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircle className="w-12 h-12 text-white" strokeWidth={2} />
-            </div>
-            <h2 className="text-3xl font-bold text-slate-900 mb-3">Thank You for Your Support!</h2>
-            <p className="text-lg text-slate-700 mb-6">
-              Your donation of <span className="font-bold text-emerald-600">${totalCost.toLocaleString()}</span> will make a real difference.
-            </p>
-            <div className="flex gap-4 justify-center">
-              <Link
-                to="/"
-                onClick={() => setCheckoutSuccess(false)}
-                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
-              >
-                Browse More Needs
-              </Link>
-            </div>
+          <div className="border rounded p-6 mb-6 text-center">
+            <CheckCircle className="w-10 h-10 text-emerald-600 mx-auto mb-2" />
+            <h2 className="text-xl font-bold mb-1">Thank you!</h2>
+            <p className="text-sm mb-3">Your donation of ${lastCheckoutTotal.toLocaleString()} was processed.</p>
+            <Link to="/" onClick={() => setCheckoutSuccess(false)} className="text-blue-700 text-sm">Browse more needs</Link>
           </div>
         )}
 
         {/* Empty Basket State */}
         {basket.length === 0 && !checkoutSuccess && (
-          <div className="bg-white border-2 border-dashed border-slate-300 rounded-2xl p-16 text-center">
-            <div className="max-w-md mx-auto">
-              <ShoppingCart className="w-20 h-20 text-slate-300 mx-auto mb-6" strokeWidth={1.5} />
-              <h2 className="text-2xl font-bold text-slate-900 mb-3">
-                Your basket is empty
-              </h2>
-              <p className="text-slate-600 mb-6">
-                Browse available needs and add items to your basket to get started.
-              </p>
-              <Link
-                to="/"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
-              >
-                <Package className="w-5 h-5" strokeWidth={2} />
-                Browse Needs
-              </Link>
-            </div>
+          <div className="border border-dashed rounded p-8 text-center">
+            <ShoppingCart className="w-10 h-10 text-slate-400 mx-auto mb-2" />
+            <div className="font-semibold mb-1">Your basket is empty</div>
+            <Link to="/" className="text-blue-700 text-sm">Browse Needs</Link>
           </div>
         )}
 
         {/* Basket Items */}
         {basket.length > 0 && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             
             {/* Items List */}
-            <div className="lg:col-span-2 space-y-4">
+            <div className="md:col-span-2 space-y-3">
               {basket.map((item) => (
-                <div key={item.id} className="bg-white border-2 border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
+                <div key={item.id} className="border rounded p-4">
                   
                   {/* Item Header */}
-                  <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-start justify-between mb-3">
                     <div className="flex-1">
                       <h3 className="text-xl font-bold text-slate-900 mb-1">
                         {item.title}
@@ -183,23 +164,23 @@ function Basket() {
                     </div>
 
                     {/* Quantity Controls */}
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
                       <button
                         onClick={() => updateQuantity(item.id, -1)}
                         disabled={item.quantity <= 1}
-                        className="w-10 h-10 flex items-center justify-center bg-slate-100 hover:bg-slate-200 disabled:opacity-30 disabled:cursor-not-allowed rounded-lg transition-colors"
+                        className="w-8 h-8 flex items-center justify-center border rounded disabled:opacity-30 disabled:cursor-not-allowed"
                         aria-label="Decrease quantity"
                       >
                         <Minus className="w-4 h-4 text-slate-700" strokeWidth={2} />
                       </button>
                       
-                      <span className="text-xl font-bold text-slate-900 w-12 text-center">
+                      <span className="text-base font-bold w-10 text-center">
                         {item.quantity}
                       </span>
                       
                       <button
                         onClick={() => updateQuantity(item.id, 1)}
-                        className="w-10 h-10 flex items-center justify-center bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
+                        className="w-8 h-8 flex items-center justify-center border rounded"
                         aria-label="Increase quantity"
                       >
                         <Plus className="w-4 h-4 text-slate-700" strokeWidth={2} />
@@ -209,7 +190,7 @@ function Basket() {
                     {/* Item Total */}
                     <div className="text-right">
                       <p className="text-sm text-slate-600 mb-1">Item total</p>
-                      <p className="text-2xl font-bold text-blue-600">
+                      <p className="text-lg font-bold">
                         ${(item.cost * item.quantity).toLocaleString()}
                       </p>
                     </div>
@@ -219,12 +200,12 @@ function Basket() {
             </div>
 
             {/* Summary Sidebar */}
-            <div className="lg:col-span-1">
-              <div className="sticky top-24 bg-white border-2 border-slate-200 rounded-2xl p-6 shadow-xl">
-                <h2 className="text-xl font-bold text-slate-900 mb-6">Order Summary</h2>
+            <div className="md:col-span-1">
+              <div className="border rounded p-4 sticky top-20">
+                <h2 className="text-base font-bold mb-4">Summary</h2>
                 
                 {/* Stats */}
-                <div className="space-y-4 mb-6 pb-6 border-b border-slate-200">
+                <div className="space-y-2 mb-4 pb-4 border-b">
                   <div className="flex justify-between text-slate-700">
                     <span>Items:</span>
                     <span className="font-semibold">{totalItems}</span>
@@ -236,47 +217,36 @@ function Basket() {
                 </div>
 
                 {/* Total */}
-                <div className="mb-6 pb-6 border-b border-slate-200">
+                <div className="mb-4 pb-4 border-b">
                   <div className="flex justify-between items-baseline">
-                    <span className="text-lg font-bold text-slate-900">Total:</span>
-                    <span className="text-3xl font-bold text-slate-900">
+                    <span className="text-base font-bold">Total:</span>
+                    <span className="text-xl font-bold">
                       ${totalCost.toLocaleString()}
                     </span>
                   </div>
                 </div>
 
                 {/* Checkout Button */}
-                <button
-                  onClick={handleCheckout}
-                  className="w-full h-14 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold text-lg rounded-xl shadow-xl shadow-blue-500/40 hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 mb-3"
-                >
-                  <CheckCircle className="w-6 h-6" strokeWidth={2} />
-                  Checkout
-                </button>
+                <button onClick={handleCheckout} className="w-full px-4 py-2 border rounded text-sm mb-2">Checkout</button>
 
                 {/* Clear Basket */}
-                <button
-                  onClick={clearBasket}
-                  className="w-full h-12 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition-all duration-200"
-                >
-                  Clear Basket
-                </button>
+                <button onClick={clearBasket} className="w-full px-4 py-2 border rounded text-sm">Clear Basket</button>
 
                 {/* Trust Indicators */}
-                <div className="mt-6 pt-6 border-t border-slate-200 space-y-3">
-                  <div className="flex items-center gap-3 text-sm text-slate-600">
-                    <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
-                      <CheckCircle className="w-4 h-4 text-emerald-600" strokeWidth={2} />
-                    </div>
-                    <span>Secure checkout</span>
-                  </div>
-                  <div className="flex items-center gap-3 text-sm text-slate-600">
-                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                      <CheckCircle className="w-4 h-4 text-blue-600" strokeWidth={2} />
-                    </div>
-                    <span>100% goes to community needs</span>
-                  </div>
-                </div>
+                <div className="mt-4 pt-4 border-t text-xs text-slate-600"></div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showConfirm && (
+          <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
+            <div className="bg-white border rounded p-4 w-[320px]">
+              <h3 className="font-bold mb-2 text-sm">Confirm Checkout</h3>
+              <p className="text-sm mb-3">Checkout {basket.length} item(s) for ${totalCost.toLocaleString()}?</p>
+              <div className="flex items-center justify-end gap-2">
+                <button onClick={cancelCheckout} className="px-3 py-2 border rounded text-sm">Cancel</button>
+                <button onClick={confirmCheckout} className="px-3 py-2 border rounded text-sm bg-blue-600 text-white">Confirm</button>
               </div>
             </div>
           </div>

@@ -1,14 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { getAllNeeds } from '../services/api';
-import { ShoppingCart, CheckCircle, Package } from 'lucide-react';
+import { ShoppingCart, Package, Minus, Plus } from 'lucide-react';
 
 const NeedsList = () => {
   const [needs, setNeeds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [quantities, setQuantities] = useState({}); // per-need quantity to add
 
   useEffect(() => {
     fetchNeeds();
+    const onNeedsUpdated = () => fetchNeeds();
+    window.addEventListener('needs-updated', onNeedsUpdated);
+    return () => window.removeEventListener('needs-updated', onNeedsUpdated);
   }, []);
 
   const fetchNeeds = async () => {
@@ -29,15 +33,16 @@ const NeedsList = () => {
     try {
       let basket = JSON.parse(localStorage.getItem('basket') || '[]');
       const existingItemIndex = basket.findIndex(item => item.id === need.id);
+      const qty = Math.max(1, Number(quantities[need.id] || 1));
 
       if (existingItemIndex > -1) {
-        basket[existingItemIndex].quantity += 1;
+        basket[existingItemIndex].quantity = Number(basket[existingItemIndex].quantity || 0) + qty;
       } else {
         basket.push({
           id: need.id,
           title: need.title,
           cost: need.cost,
-          quantity: 1,
+          quantity: qty,
           category: need.category,
           organization: need.org_type
         });
@@ -85,108 +90,77 @@ const NeedsList = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 pt-20">
-      <div className="max-w-7xl mx-auto px-6 py-12">
+    <div className="min-h-screen bg-white pt-16">
+      <div className="max-w-4xl mx-auto px-4 py-6">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">Browse Needs</h1>
-          <p className="text-slate-600">Help our community by funding essential items</p>
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold">Browse Needs</h1>
         </div>
 
         {/* Needs Grid */}
         {needs.length === 0 ? (
-          <div className="bg-white rounded-lg border-2 border-dashed border-slate-300 p-12 text-center">
-            <Package className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-slate-900 mb-2">No needs available</h3>
-            <p className="text-slate-600">Check back soon for new needs to support</p>
+          <div className="border border-dashed border-slate-300 rounded p-8 text-center">
+            <Package className="w-12 h-12 text-slate-400 mx-auto mb-3" />
+            <h3 className="text-lg font-semibold mb-1">No needs available</h3>
+            <p className="text-slate-600 text-sm">Add needs from the manager page and refresh</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="space-y-4">
             {needs.map((need) => {
-              const fundingPercentage = Math.round((need.quantity_fulfilled / need.quantity) * 100);
-              const isFullyFunded = need.quantity_fulfilled >= need.quantity;
-              const inBasket = isInBasket(need.id);
+              const remaining = Math.max(0, (need.quantity || 0) - (need.quantity_fulfilled || 0));
+              const selectedQty = Math.max(1, Math.min(Number(quantities[need.id] || 1), remaining || 1));
 
               return (
-                <div
-                  key={need.id}
-                  className="bg-white rounded-lg border border-slate-200 p-6 hover:shadow-lg transition-shadow"
-                >
-                  {/* Header */}
-                  <div className="flex items-start justify-between mb-3">
-                    <h3 className="text-lg font-bold text-slate-900 flex-1">
-                      {need.title}
-                    </h3>
-                    {need.priority >= 8 && (
-                      <span className="ml-2 px-2 py-1 bg-red-100 text-red-700 text-xs font-semibold rounded">
-                        Urgent
-                      </span>
-                    )}
+                <div key={need.id} className="border rounded p-4">
+                  <h3 className="font-bold mb-1 text-lg">{need.title}</h3>
+                  <p className="text-sm text-slate-600 mb-1 capitalize">Category: {need.category}</p>
+                  <p className="text-sm mb-2">{need.description}</p>
+
+                  <div className="mb-3 text-sm">
+                    <span className="text-slate-700">Quantity: </span>
+                    <span className="font-semibold">{remaining}</span>
                   </div>
 
-                  {/* Organization */}
-                  <p className="text-sm text-slate-600 mb-3 capitalize">{need.org_type}</p>
-
-                  {/* Description */}
-                  <p className="text-sm text-slate-700 mb-4 line-clamp-2">
-                    {need.description}
-                  </p>
-
-                  {/* Category */}
-                  <div className="mb-4">
-                    <span className="inline-block px-2 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded capitalize">
-                      {need.category}
-                    </span>
-                  </div>
-
-                  {/* Progress Bar */}
-                  <div className="mb-4">
-                    <div className="flex items-center justify-between text-xs text-slate-600 mb-1">
-                      <span>{need.quantity_fulfilled} of {need.quantity} funded</span>
-                      <span>{fundingPercentage}%</span>
-                    </div>
-                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-blue-600 transition-all duration-500"
-                        style={{ width: `${fundingPercentage}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Price & Action */}
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-4">
                     <div>
-                      <span className="text-2xl font-bold text-slate-900">${need.cost}</span>
-                      <span className="text-sm text-slate-500 ml-1">per item</span>
+                      <span className="text-sm font-bold">${need.cost}</span>
+                      <span className="text-sm text-slate-600 ml-1">per item</span>
                     </div>
 
-                    {!isFullyFunded ? (
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setQuantities(prev => ({ ...prev, [need.id]: Math.max(1, (selectedQty || 1) - 1) }))}
+                        className="w-8 h-8 border rounded flex items-center justify-center"
+                        aria-label="Decrease quantity"
+                      >
+                        <Minus className="w-4 h-4" />
+                      </button>
+                      <input
+                        type="number"
+                        min="1"
+                        max={remaining || 1}
+                        value={selectedQty}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value || '1', 10);
+                          setQuantities(prev => ({ ...prev, [need.id]: isNaN(val) ? 1 : val }));
+                        }}
+                        className="w-14 text-center text-sm border rounded py-1"
+                      />
+                      <button
+                        onClick={() => setQuantities(prev => ({ ...prev, [need.id]: Math.min((remaining || 1), (selectedQty || 1) + 1) }))}
+                        className="w-8 h-8 border rounded flex items-center justify-center"
+                        aria-label="Increase quantity"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
                       <button
                         onClick={() => handleAddToBasket(need)}
-                        disabled={inBasket}
-                        className={`px-4 py-2 rounded-lg font-semibold flex items-center gap-2 transition-colors ${
-                          inBasket
-                            ? 'bg-green-600 text-white'
-                            : 'bg-blue-600 text-white hover:bg-blue-700'
-                        }`}
+                        disabled={remaining === 0}
+                        className={`px-4 py-2 border rounded text-sm ${remaining === 0 ? 'bg-slate-200 text-slate-500 cursor-not-allowed' : ''}`}
                       >
-                        {inBasket ? (
-                          <>
-                            <CheckCircle className="w-4 h-4" />
-                            Added
-                          </>
-                        ) : (
-                          <>
-                            <ShoppingCart className="w-4 h-4" />
-                            Add
-                          </>
-                        )}
+                        Add
                       </button>
-                    ) : (
-                      <span className="px-4 py-2 bg-green-100 text-green-700 font-semibold rounded-lg">
-                        Funded
-                      </span>
-                    )}
+                    </div>
                   </div>
                 </div>
               );
