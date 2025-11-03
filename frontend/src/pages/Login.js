@@ -76,26 +76,18 @@ function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 flex items-center justify-center p-6 relative overflow-hidden">
-      {/* Subtle animated background elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-20 w-96 h-96 bg-blue-200/30 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-20 right-20 w-96 h-96 bg-cyan-200/30 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
-      </div>
-
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
       {/* Main Login Card */}
-      <div className="w-full max-w-md relative z-10 animate-fadeIn">
-        {/* Glassmorphism Card */}
-        <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl shadow-blue-500/10 border border-slate-200/50 p-12">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <div className="flex items-center justify-center gap-3 mb-3">
-              <HandHeart className="w-12 h-12 text-blue-600" strokeWidth={2} />
-              <h1 className="text-4xl font-bold text-slate-900 tracking-tight">Needs Connect</h1>
+      <div className="w-full max-w-md animate-slideInUp">
+        {/* Clean Card */}
+        <div className="bg-white rounded-2xl shadow-xl p-10">
+          {/* Header - Apple Style */}
+          <div className="text-center mb-10">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <HandHeart className="w-10 h-10 text-emerald-600" strokeWidth={2} />
+              <h1 className="text-3xl font-semibold text-gray-900 tracking-tight">NeedsConnect</h1>
             </div>
-            <p className="text-slate-500 text-base mt-3">Sign in to continue making a difference</p>
-            {/* Decorative divider */}
-            <div className="w-20 h-1 bg-blue-600 rounded-full mx-auto mt-6"></div>
+            <p className="text-gray-600 text-base">Sign in to continue making a difference</p>
           </div>
 
           {/* Login Form */}
@@ -105,55 +97,31 @@ function Login() {
               <div>
                 <label 
                   htmlFor="username-input" 
-                  className="block text-sm font-semibold text-slate-700 mb-2"
+                  className="block text-sm font-medium text-gray-700 mb-2"
                 >
                   Username
                 </label>
-                <div className="relative">
-                  {/* User Icon Inside Input */}
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <svg 
-                      className={`w-5 h-5 ${error ? 'text-red-400' : 'text-slate-400'}`}
-                      fill="none" 
-                      stroke="currentColor" 
-                      viewBox="0 0 24 24"
-                      aria-hidden="true"
-                    >
-                      <path 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        strokeWidth={2} 
-                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" 
-                      />
-                    </svg>
-                  </div>
-                  <input
-                    id="username-input"
-                    type="text"
-                    ref={usernameInputRef}
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    placeholder="Enter your username"
-                    disabled={loading}
-                    aria-label="Username"
-                    aria-invalid={error ? 'true' : 'false'}
-                    className={`w-full pl-12 pr-4 py-3.5 bg-slate-50 text-slate-900 rounded-xl border-2 ${
-                      error 
-                        ? 'border-red-300 focus:border-red-500 focus:ring-red-100' 
-                        : 'border-slate-200 focus:border-blue-600 focus:ring-blue-100'
-                    } focus:bg-white focus:outline-none focus:ring-4 placeholder-slate-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200`}
-                    autoFocus
-                  />
-                </div>
+                <input
+                  id="username-input"
+                  type="text"
+                  ref={usernameInputRef}
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Enter your username"
+                  disabled={loading}
+                  aria-label="Username"
+                  aria-invalid={error ? 'true' : 'false'}
+                  className={`input-green text-sm ${
+                    error ? 'border-red-300 focus:border-red-500' : ''
+                  }`}
+                  autoFocus
+                />
               </div>
 
               {/* Error Message */}
               {error && (
-                <div className="bg-red-50 border-2 border-red-200 text-red-800 px-4 py-3 rounded-xl animate-fadeIn" role="alert">
-                  <div className="flex items-center gap-3">
-                    <span className="text-xl text-red-500" aria-hidden="true">⚠️</span>
-                    <span className="text-sm font-medium">{error}</span>
-                  </div>
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg animate-fadeIn text-sm" role="alert">
+                  {error}
                 </div>
               )}
 
@@ -162,20 +130,15 @@ function Login() {
                 type="submit"
                 disabled={loading}
                 aria-label="Login to Needs Connect"
-                className="w-full px-6 py-3.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:bg-slate-400 text-white font-semibold text-base rounded-xl transition-all duration-200 disabled:cursor-not-allowed shadow-lg shadow-blue-600/30 hover:shadow-xl hover:shadow-blue-600/40 hover:-translate-y-0.5 active:translate-y-0"
+                className="btn-green-primary w-full text-base py-3.5 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <div className="flex items-center justify-center gap-3">
-                    <div className="w-5 h-5 border-3 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                     <span>Signing In...</span>
                   </div>
                 ) : (
-                  <span className="flex items-center justify-center gap-2">
-                    <span>Login</span>
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                    </svg>
-                  </span>
+                  'Login'
                 )}
               </button>
             </form>
@@ -188,7 +151,7 @@ function Login() {
                 onClick={() => setShowHelp(!showHelp)}
                 aria-expanded={showHelp}
                 aria-controls="help-content"
-                className="w-full flex items-center justify-center gap-2 text-slate-600 hover:text-blue-600 text-sm font-medium transition-colors duration-200 py-2 rounded-lg hover:bg-slate-50"
+                className="w-full flex items-center justify-center gap-2 text-slate-600 hover:text-emerald-600 text-sm font-medium transition-colors duration-300 py-2 rounded-lg hover:bg-emerald-50"
               >
                 <HelpCircle className="w-4 h-4" aria-hidden="true" />
                 <span>Need help logging in?</span>
@@ -210,7 +173,7 @@ function Login() {
                   showHelp ? 'max-h-48 opacity-100' : 'max-h-0 opacity-0'
                 }`}
               >
-                <div className="bg-gradient-to-br from-blue-50 to-cyan-50 border-2 border-slate-200 rounded-xl p-4">
+                <div className="bg-gradient-to-br from-emerald-50 to-teal-50 border-2 border-emerald-200 rounded-xl p-4 shadow-sm">
                   <div className="flex items-start gap-3">
                     <div className="text-2xl text-amber-500" aria-hidden="true">💡</div>
                     <div className="flex-1">
@@ -218,7 +181,7 @@ function Login() {
                         Quick Login Guide
                       </p>
                       <p className="text-sm text-slate-700 leading-relaxed">
-                        Login as <span className="font-bold text-blue-700">"admin"</span> for manager access, or use any other username for helper access
+                        Login as <span className="font-bold text-emerald-700">"admin"</span> for manager access, or use any other username for helper access
                       </p>
                     </div>
                   </div>
@@ -232,26 +195,26 @@ function Login() {
                 type="button"
                 onClick={handleHelperClick}
                 aria-label="Switch to Helper mode - Browse and fund nonprofit needs"
-                className="group bg-gradient-to-br from-slate-50 to-slate-100 hover:from-blue-50 hover:to-cyan-50 border-2 border-slate-200 hover:border-blue-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 rounded-xl p-6 text-center transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer active:translate-y-0 active:scale-95"
+                className="group bg-gradient-to-br from-emerald-50 to-teal-50 hover:from-emerald-100 hover:to-teal-100 border-2 border-emerald-200 hover:border-emerald-400 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 rounded-xl p-6 text-center transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer active:translate-y-0 active:scale-95"
               >
-                <div className="text-3xl mb-2 transition-transform duration-200 group-hover:scale-110" aria-hidden="true">👤</div>
-                <p className="text-sm font-semibold text-slate-700 mb-1">Helper</p>
-                <p className="text-xs text-slate-500 leading-tight">Browse & Fund</p>
+                <div className="text-3xl mb-2 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" aria-hidden="true">👤</div>
+                <p className="text-sm font-semibold text-emerald-800 mb-1">Helper</p>
+                <p className="text-xs text-emerald-600 leading-tight">Browse & Fund</p>
               </button>
               <button
                 type="button"
                 onClick={handleManagerClick}
                 aria-label="Switch to Manager mode - Create and manage nonprofit needs"
-                className="group bg-gradient-to-br from-slate-50 to-slate-100 hover:from-blue-50 hover:to-cyan-50 border-2 border-slate-200 hover:border-blue-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 rounded-xl p-6 text-center transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer active:translate-y-0 active:scale-95"
+                className="group bg-gradient-to-br from-teal-50 to-emerald-50 hover:from-teal-100 hover:to-emerald-100 border-2 border-teal-200 hover:border-teal-400 focus:border-teal-500 focus:ring-4 focus:ring-teal-100 rounded-xl p-6 text-center transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer active:translate-y-0 active:scale-95"
               >
-                <div className="text-3xl mb-2 transition-transform duration-200 group-hover:scale-110" aria-hidden="true">⚙️</div>
-                <p className="text-sm font-semibold text-slate-700 mb-1">Manager</p>
-                <p className="text-xs text-slate-500 leading-tight">Manage Needs</p>
+                <div className="text-3xl mb-2 transition-transform duration-300 group-hover:scale-125 group-hover:-rotate-6" aria-hidden="true">⚙️</div>
+                <p className="text-sm font-semibold text-teal-800 mb-1">Manager</p>
+                <p className="text-xs text-teal-600 leading-tight">Manage Needs</p>
               </button>
             </div>
 
             {/* Trust-Based Auth Note - Subtle */}
-            <div className="flex items-center justify-center gap-1.5 text-xs text-slate-400 pt-6 mt-6 border-t border-slate-100">
+            <div className="flex items-center justify-center gap-1.5 text-xs text-emerald-500 pt-6 mt-6 border-t border-emerald-100">
               <Lock className="w-3 h-3" aria-hidden="true" />
               <span>Trust-based authentication • No password required</span>
             </div>
@@ -260,7 +223,7 @@ function Login() {
 
         {/* Watermark */}
         <div className="text-center mt-6">
-          <p className="text-slate-400 text-xs">Needs Connect © 2025</p>
+          <p className="text-emerald-600/60 text-xs font-medium">Needs Connect © 2025 🌱</p>
         </div>
       </div>
     </div>

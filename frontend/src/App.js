@@ -8,6 +8,8 @@ import Basket from './pages/Basket';
 import ManagerDashboard from './pages/ManagerDashboard';
 import AddNeed from './pages/AddNeed';
 import EditNeed from './pages/EditNeed';
+import ManagerEvents from './pages/ManagerEvents';
+import VolunteerOpportunities from './pages/VolunteerOpportunities';
 
 // Protected Route Component - Redirects to login if not authenticated
 function ProtectedRoute({ children }) {
@@ -49,15 +51,18 @@ function ManagerRoute({ children }) {
 
 // App Routes Component (needs auth context)
 function AppRoutes() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
+  
+  console.log('AppRoutes rendering... isAuthenticated:', isAuthenticated, 'loading:', loading);
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-gray-50">
       {/* Top Navigation - Only show if authenticated */}
       {isAuthenticated && <Navigation />}
       
-      {/* Main Content Area */}
-      <Routes>
+      {/* Main Content Area with padding for nav */}
+      <div className={isAuthenticated ? "pt-16" : ""}>
+        <Routes>
           {/* Public Route */}
           <Route path="/login" element={<Login />} />
 
@@ -75,6 +80,14 @@ function AppRoutes() {
           element={
             <ProtectedRoute>
               <Basket />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/volunteer"
+          element={
+            <ProtectedRoute>
+              <VolunteerOpportunities />
             </ProtectedRoute>
           }
         />
@@ -104,15 +117,26 @@ function AppRoutes() {
               </ManagerRoute>
             }
           />
+          <Route
+            path="/manager/events"
+            element={
+              <ManagerRoute>
+                <ManagerEvents />
+              </ManagerRoute>
+            }
+          />
 
           {/* Catch all - redirect to home or login */}
           <Route path="*" element={<Navigate to={isAuthenticated ? "/" : "/login"} />} />
-      </Routes>
+        </Routes>
+      </div>
     </div>
   );
 }
 
 function App() {
+  console.log('App component rendering...');
+  
   return (
     <Router>
       <AuthProvider>

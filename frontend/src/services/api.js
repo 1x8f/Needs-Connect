@@ -27,16 +27,32 @@ export const login = async (username) => {
  */
 export const getAllNeeds = async (filters = {}) => {
   const queryParams = new URLSearchParams();
-  
-  if (filters.priority) queryParams.append('priority', filters.priority);
-  if (filters.category) queryParams.append('category', filters.category);
-  if (filters.search) queryParams.append('search', filters.search);
-  
+
+  const simpleFilters = ['priority', 'category', 'search', 'bundle', 'sort', 'dueWithin', 'managerId', 'limit'];
+  simpleFilters.forEach((key) => {
+    if (filters[key]) {
+      queryParams.append(key, filters[key]);
+    }
+  });
+
+  if (filters.perishable !== undefined) {
+    queryParams.append('perishable', String(filters.perishable));
+  }
+  if (filters.service !== undefined) {
+    queryParams.append('service', String(filters.service));
+  }
+  if (filters.timeSensitiveOnly !== undefined) {
+    queryParams.append('timeSensitiveOnly', String(filters.timeSensitiveOnly));
+  }
+  if (filters.beautificationOnly !== undefined) {
+    queryParams.append('beautificationOnly', String(filters.beautificationOnly));
+  }
+
   const queryString = queryParams.toString();
-  const url = queryString 
-    ? `${API_BASE_URL}/needs?${queryString}` 
+  const url = queryString
+    ? `${API_BASE_URL}/needs?${queryString}`
     : `${API_BASE_URL}/needs`;
-  
+
   const response = await fetch(url);
   return response.json();
 };
@@ -61,6 +77,87 @@ export const createNeed = async (needData) => {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(needData)
+  });
+  return response.json();
+};
+
+export const getUrgentNeeds = async (limit = 10) => {
+  const response = await fetch(`${API_BASE_URL}/needs/urgent?limit=${limit}`);
+  return response.json();
+};
+
+export const getBundleNeeds = async (bundleTag, options = {}) => {
+  if (!bundleTag) {
+    return { success: false, message: 'bundleTag is required' };
+  }
+  const params = new URLSearchParams();
+  if (options.limit) params.append('limit', options.limit);
+  if (options.sort) params.append('sort', options.sort);
+  const url = params.toString()
+    ? `${API_BASE_URL}/needs/bundle/${bundleTag}?${params.toString()}`
+    : `${API_BASE_URL}/needs/bundle/${bundleTag}`;
+  const response = await fetch(url);
+  return response.json();
+};
+
+export const getBeautificationNeeds = async (options = {}) => {
+  const params = new URLSearchParams();
+  Object.entries(options).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      params.append(key, value);
+    }
+  });
+  const url = params.toString()
+    ? `${API_BASE_URL}/needs/beautification?${params.toString()}`
+    : `${API_BASE_URL}/needs/beautification`;
+  const response = await fetch(url);
+  return response.json();
+};
+
+export const createEvent = async (eventData) => {
+  const response = await fetch(`${API_BASE_URL}/events`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(eventData)
+  });
+  return response.json();
+};
+
+export const getUpcomingEvents = async (filters = {}) => {
+  const params = new URLSearchParams();
+
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      params.append(key, value);
+    }
+  });
+
+  const url = params.toString()
+    ? `${API_BASE_URL}/events/upcoming?${params.toString()}`
+    : `${API_BASE_URL}/events/upcoming`;
+  const response = await fetch(url);
+  return response.json();
+};
+
+export const getEventsForNeed = async (needId) => {
+  const response = await fetch(`${API_BASE_URL}/events/need/${needId}`);
+  return response.json();
+};
+
+export const signupForEvent = async (eventId, userId) => {
+  const response = await fetch(`${API_BASE_URL}/events/${eventId}/signup`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ user_id: userId })
+  });
+  return response.json();
+};
+
+export const cancelEventSignup = async (eventId, userId) => {
+  const response = await fetch(`${API_BASE_URL}/events/${eventId}/cancel`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ user_id: userId })
   });
   return response.json();
 };

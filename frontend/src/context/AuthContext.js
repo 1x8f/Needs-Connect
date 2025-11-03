@@ -17,16 +17,22 @@ export const AuthProvider = ({ children }) => {
 
   // Check for existing auth on mount
   useEffect(() => {
+    console.log('AuthProvider: Checking for stored user...');
     const storedUser = localStorage.getItem('needs_connect_user');
     if (storedUser) {
       try {
-        setUser(JSON.parse(storedUser));
+        const parsedUser = JSON.parse(storedUser);
+        console.log('AuthProvider: Found stored user:', parsedUser);
+        setUser(parsedUser);
       } catch (err) {
         console.error('Error parsing stored user:', err);
         localStorage.removeItem('needs_connect_user');
       }
+    } else {
+      console.log('AuthProvider: No stored user found');
     }
     setLoading(false);
+    console.log('AuthProvider: Initialization complete');
   }, []);
 
   const login = async (username) => {

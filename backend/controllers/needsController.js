@@ -3,6 +3,80 @@
 
 const pool = require('../database/db');
 
+const PRIORITY_WEIGHTS = {
+  urgent: 60,
+  high: 40,
+  normal: 20
+};
+
+const PRIORITY_ORDER = {
+  urgent: 1,
+  high: 2,
+  normal: 3
+};
+
+const BUNDLE_TAGS = new Set(['basic_food', 'winter_clothing', 'hygiene_kit', 'cleaning_supplies', 'beautification', 'other']);
+
+const VALID_ORG_TYPES = ['food_bank', 'animal_shelter', 'hospital', 'school', 'homeless_shelter', 'disaster_relief', 'other'];
+
+const calculateUrgencyScore = (need) => {
+  const today = new Date();
+  const basePriority = PRIORITY_WEIGHTS[need.priority] || 10;
+
+  let deadlineScore = 0;
+  if (need.needed_by) {
+    const dueDate = new Date(need.needed_by);
+    const diffDays = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
+    if (!Number.isNaN(diffDays)) {
+      if (diffDays <= 0) {
+        deadlineScore = 35; // overdue
+      } else if (diffDays <= 3) {
+        deadlineScore = 30;
+      } else if (diffDays <= 7) {
+        deadlineScore = 20;
+      } else if (diffDays <= 14) {
+        deadlineScore = 10;
+      }
+    }
+  }
+
+  const remaining = Math.max(0, (need.quantity || 0) - (need.quantity_fulfilled || 0));
+  const lowInventoryScore = remaining === 0 ? 0 : remaining <= Math.ceil((need.quantity || 1) * 0.25) ? 10 : 0;
+
+  const perishableScore = need.is_perishable ? 15 : 0;
+  const requestScore = Math.min((need.request_count || 0) * 5, 25);
+  const serviceBoost = need.service_required ? 10 : 0;
+
+  return basePriority + deadlineScore + lowInventoryScore + perishableScore + requestScore + serviceBoost;
+};
+
+const sortNeeds = (needs, sortParam = 'urgency') => {
+  if (sortParam === 'needed_by') {
+    return [...needs].sort((a, b) => {
+      const aTime = a.needed_by ? new Date(a.needed_by).getTime() : Number.POSITIVE_INFINITY;
+      const bTime = b.needed_by ? new Date(b.needed_by).getTime() : Number.POSITIVE_INFINITY;
+      return aTime - bTime;
+    });
+  }
+
+  if (sortParam === 'frequency') {
+    return [...needs].sort((a, b) => (b.request_count || 0) - (a.request_count || 0));
+  }
+
+  if (sortParam === 'priority') {
+    return [...needs].sort((a, b) => (PRIORITY_ORDER[a.priority] || 4) - (PRIORITY_ORDER[b.priority] || 4));
+  }
+
+  return [...needs].sort((a, b) => {
+    if (b.urgency_score !== a.urgency_score) {
+      return (b.urgency_score || 0) - (a.urgency_score || 0);
+    }
+    const aTime = a.needed_by ? new Date(a.needed_by).getTime() : Number.POSITIVE_INFINITY;
+    const bTime = b.needed_by ? new Date(b.needed_by).getTime() : Number.POSITIVE_INFINITY;
+    return aTime - bTime;
+  });
+};
+
 /**
  * Get all needs with optional filtering
  * 
@@ -16,10 +90,21 @@ const pool = require('../database/db');
  */
 const getAllNeeds = async (req, res) => {
   try {
-    // Extract query parameters for filtering
-    const { priority, category, search } = req.query;
+    const {
+      priority,
+      category,
+      search,
+      bundle,
+      sort = 'urgency',
+      perishable,
+      service,
+      dueWithin,
+      timeSensitiveOnly,
+      beautificationOnly,
+      managerId,
+      limit
+    } = req.query;
 
-    // Base query with LEFT JOIN to get manager information
     let query = `
       SELECT 
         needs.*,
@@ -28,47 +113,105 @@ const getAllNeeds = async (req, res) => {
       LEFT JOIN users ON needs.manager_id = users.id
       WHERE 1=1
     `;
-    
-    // Array to hold query parameters
+
     const queryParams = [];
 
-    // Add priority filter if provided
     if (priority) {
       query += ' AND needs.priority = ?';
       queryParams.push(priority);
     }
 
-    // Add category filter if provided (partial match)
     if (category) {
       query += ' AND needs.category LIKE ?';
       queryParams.push(`%${category}%`);
     }
 
-    // Add search filter if provided (searches in title and description)
+    if (bundle && BUNDLE_TAGS.has(bundle)) {
+      query += ' AND needs.bundle_tag = ?';
+      queryParams.push(bundle);
+    }
+
+    if (perishable === 'true') {
+      query += ' AND needs.is_perishable = 1';
+    } else if (perishable === 'false') {
+      query += ' AND needs.is_perishable = 0';
+    }
+
+    if (service === 'true') {
+      query += ' AND needs.service_required = 1';
+    } else if (service === 'false') {
+      query += ' AND needs.service_required = 0';
+    }
+
+    if (beautificationOnly === 'true') {
+      query += " AND (needs.bundle_tag = 'beautification' OR needs.service_required = 1)";
+    }
+
+    if (managerId) {
+      query += ' AND needs.manager_id = ?';
+      queryParams.push(managerId);
+    }
+
+    if (dueWithin) {
+      const windowDays = parseInt(dueWithin, 10);
+      if (!Number.isNaN(windowDays) && windowDays > 0) {
+        query += ' AND needs.needed_by IS NOT NULL AND needs.needed_by <= DATE_ADD(CURDATE(), INTERVAL ? DAY)';
+        queryParams.push(windowDays);
+      }
+    }
+
     if (search) {
       query += ' AND (needs.title LIKE ? OR needs.description LIKE ?)';
       queryParams.push(`%${search}%`, `%${search}%`);
     }
 
-    // Order by priority (urgent first) and creation date (newest first)
-    query += `
-      ORDER BY 
-        CASE needs.priority
-          WHEN 'urgent' THEN 1
-          WHEN 'high' THEN 2
-          WHEN 'normal' THEN 3
-        END,
-        needs.created_at DESC
-    `;
+    query += ' ORDER BY needs.created_at DESC';
 
-    // Execute query
     const [needs] = await pool.query(query, queryParams);
 
-    // Return success response with needs array
+    const today = new Date();
+    let enrichedNeeds = needs.map((need) => {
+      const remaining_quantity = Math.max(0, (Number(need.quantity) || 0) - (Number(need.quantity_fulfilled) || 0));
+      const neededByDate = need.needed_by ? new Date(need.needed_by) : null;
+      const due_in_days = neededByDate ? Math.ceil((neededByDate - today) / (1000 * 60 * 60 * 24)) : null;
+      const urgency_score = calculateUrgencyScore({
+        ...need,
+        quantity: Number(need.quantity) || 0,
+        quantity_fulfilled: Number(need.quantity_fulfilled) || 0,
+        request_count: Number(need.request_count) || 0,
+        is_perishable: need.is_perishable === 1 || need.is_perishable === true || need.is_perishable === '1',
+        service_required: need.service_required === 1 || need.service_required === true || need.service_required === '1'
+      });
+
+      return {
+        ...need,
+        quantity: Number(need.quantity) || 0,
+        quantity_fulfilled: Number(need.quantity_fulfilled) || 0,
+        request_count: Number(need.request_count) || 0,
+        is_perishable: need.is_perishable === 1 || need.is_perishable === true || need.is_perishable === '1',
+        service_required: need.service_required === 1 || need.service_required === true || need.service_required === '1',
+        remaining_quantity,
+        urgency_score,
+        due_in_days
+      };
+    });
+
+    if (timeSensitiveOnly === 'true') {
+      enrichedNeeds = enrichedNeeds.filter((need) => {
+        if (need.urgency_score >= 70) return true;
+        if (need.due_in_days !== null && need.due_in_days <= 7) return true;
+        if (need.is_perishable && (need.due_in_days === null || need.due_in_days <= 10)) return true;
+        return false;
+      });
+    }
+
+    const sortedNeeds = sortNeeds(enrichedNeeds, sort);
+    const limitedNeeds = limit ? sortedNeeds.slice(0, parseInt(limit, 10)) : sortedNeeds;
+
     return res.status(200).json({
       success: true,
-      count: needs.length,
-      needs: needs
+      count: limitedNeeds.length,
+      needs: limitedNeeds
     });
 
   } catch (error) {
@@ -121,10 +264,21 @@ const getNeedById = async (req, res) => {
       });
     }
 
-    // Return the found need
+    const needRecord = needs[0];
+    const normalizedNeed = {
+      ...needRecord,
+      quantity: Number(needRecord.quantity) || 0,
+      quantity_fulfilled: Number(needRecord.quantity_fulfilled) || 0,
+      request_count: Number(needRecord.request_count) || 0,
+      is_perishable: needRecord.is_perishable === 1 || needRecord.is_perishable === true || needRecord.is_perishable === '1',
+      service_required: needRecord.service_required === 1 || needRecord.service_required === true || needRecord.service_required === '1'
+    };
+    normalizedNeed.urgency_score = calculateUrgencyScore(normalizedNeed);
+    normalizedNeed.remaining_quantity = Math.max(0, normalizedNeed.quantity - normalizedNeed.quantity_fulfilled);
+
     return res.status(200).json({
       success: true,
-      need: needs[0]
+      need: normalizedNeed
     });
 
   } catch (error) {
@@ -157,6 +311,11 @@ const createNeed = async (req, res) => {
       priority,
       category,
       org_type,
+      needed_by,
+      is_perishable,
+      bundle_tag,
+      service_required,
+      request_count,
       manager_id
     } = req.body;
 
@@ -215,13 +374,44 @@ const createNeed = async (req, res) => {
     }
 
     // Validate org_type if provided
-    const validOrgTypes = ['food_bank', 'animal_shelter', 'hospital', 'school', 'homeless_shelter', 'disaster_relief', 'other'];
-    if (org_type && !validOrgTypes.includes(org_type)) {
+    if (org_type && !VALID_ORG_TYPES.includes(org_type)) {
       return res.status(400).json({
         success: false,
         message: 'Organization type must be one of: food_bank, animal_shelter, hospital, school, homeless_shelter, disaster_relief, other'
       });
     }
+
+    // Validate bundle tag
+    const resolvedBundleTag = bundle_tag && BUNDLE_TAGS.has(bundle_tag) ? bundle_tag : 'other';
+
+    // Validate needed_by date
+    let normalizedNeededBy = null;
+    if (needed_by) {
+      const parsedDate = new Date(needed_by);
+      if (Number.isNaN(parsedDate.getTime())) {
+        return res.status(400).json({
+          success: false,
+          message: 'needed_by must be a valid date'
+        });
+      }
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (parsedDate < today) {
+        return res.status(400).json({
+          success: false,
+          message: 'needed_by cannot be in the past'
+        });
+      }
+      normalizedNeededBy = parsedDate.toISOString().slice(0, 10);
+    }
+
+    const normalizedPerishable = Boolean(is_perishable);
+    const normalizedService = Boolean(service_required);
+    const normalizedRequestCount = Number.isInteger(request_count) && request_count >= 0
+      ? request_count
+      : normalizedPerishable || resolvedBundleTag !== 'other'
+        ? 1
+        : 0;
 
     // Verify manager exists and has manager role
     const [managers] = await pool.query(
@@ -246,8 +436,8 @@ const createNeed = async (req, res) => {
     // Insert new need into database
     const insertQuery = `
       INSERT INTO needs 
-      (title, description, cost, quantity, priority, category, org_type, manager_id)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      (title, description, cost, quantity, priority, category, org_type, needed_by, is_perishable, bundle_tag, service_required, request_count, manager_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const [result] = await pool.query(insertQuery, [
@@ -258,6 +448,11 @@ const createNeed = async (req, res) => {
       priority || 'normal',
       category || null,
       org_type || 'other',
+      normalizedNeededBy,
+      normalizedPerishable ? 1 : 0,
+      resolvedBundleTag,
+      normalizedService ? 1 : 0,
+      normalizedRequestCount,
       manager_id
     ]);
 
@@ -337,7 +532,12 @@ const updateNeed = async (req, res) => {
       quantity_fulfilled,
       priority,
       category,
-      org_type
+      org_type,
+      needed_by,
+      is_perishable,
+      bundle_tag,
+      service_required,
+      request_count
     } = req.body;
 
     // Validate cost if provided
@@ -385,12 +585,44 @@ const updateNeed = async (req, res) => {
     }
 
     // Validate org_type if provided
-    const validOrgTypes = ['food_bank', 'animal_shelter', 'hospital', 'school', 'homeless_shelter', 'disaster_relief', 'other'];
-    if (org_type && !validOrgTypes.includes(org_type)) {
+    if (org_type && !VALID_ORG_TYPES.includes(org_type)) {
       return res.status(400).json({
         success: false,
         message: 'Organization type must be one of: food_bank, animal_shelter, hospital, school, homeless_shelter, disaster_relief, other'
       });
+    }
+
+    if (bundle_tag && !BUNDLE_TAGS.has(bundle_tag)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid bundle tag provided'
+      });
+    }
+
+    if (request_count !== undefined) {
+      const parsedRequestCount = parseInt(request_count, 10);
+      if (Number.isNaN(parsedRequestCount) || parsedRequestCount < 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'request_count must be a non-negative integer'
+        });
+      }
+    }
+
+    let normalizedNeededBy = undefined;
+    if (needed_by !== undefined) {
+      if (needed_by === null || needed_by === '') {
+        normalizedNeededBy = null;
+      } else {
+        const parsedDate = new Date(needed_by);
+        if (Number.isNaN(parsedDate.getTime())) {
+          return res.status(400).json({
+            success: false,
+            message: 'needed_by must be a valid date'
+          });
+        }
+        normalizedNeededBy = parsedDate.toISOString().slice(0, 10);
+      }
     }
 
     // Build dynamic update query
@@ -428,6 +660,26 @@ const updateNeed = async (req, res) => {
     if (org_type !== undefined) {
       updates.push('org_type = ?');
       values.push(org_type);
+    }
+    if (normalizedNeededBy !== undefined) {
+      updates.push('needed_by = ?');
+      values.push(normalizedNeededBy);
+    }
+    if (is_perishable !== undefined) {
+      updates.push('is_perishable = ?');
+      values.push(is_perishable ? 1 : 0);
+    }
+    if (bundle_tag !== undefined) {
+      updates.push('bundle_tag = ?');
+      values.push(bundle_tag);
+    }
+    if (service_required !== undefined) {
+      updates.push('service_required = ?');
+      values.push(service_required ? 1 : 0);
+    }
+    if (request_count !== undefined) {
+      updates.push('request_count = ?');
+      values.push(parseInt(request_count, 10));
     }
 
     // Check if there are any fields to update
@@ -527,11 +779,63 @@ const deleteNeed = async (req, res) => {
   }
 };
 
+const getUrgentNeeds = async (req, res) => {
+  const limit = req.query.limit || '10';
+  return getAllNeeds(
+    {
+      query: {
+        ...req.query,
+        limit,
+        sort: 'urgency',
+        timeSensitiveOnly: req.query.timeSensitiveOnly ?? 'true'
+      }
+    },
+    res
+  );
+};
+
+const getBundleNeeds = async (req, res) => {
+  const { bundleTag } = req.params;
+  if (!BUNDLE_TAGS.has(bundleTag)) {
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid bundle requested'
+    });
+  }
+
+  return getAllNeeds(
+    {
+      query: {
+        ...req.query,
+        bundle: bundleTag,
+        sort: req.query.sort || 'urgency'
+      }
+    },
+    res
+  );
+};
+
+const getBeautificationNeeds = async (req, res) => {
+  return getAllNeeds(
+    {
+      query: {
+        ...req.query,
+        beautificationOnly: 'true',
+        sort: req.query.sort || 'urgency'
+      }
+    },
+    res
+  );
+};
+
 // Export all controller functions
 module.exports = {
   getAllNeeds,
   getNeedById,
   createNeed,
   updateNeed,
-  deleteNeed
+  deleteNeed,
+  getUrgentNeeds,
+  getBundleNeeds,
+  getBeautificationNeeds
 };

@@ -17,7 +17,12 @@ function AddNeed() {
     quantity: '',
     priority: 'normal',
     category: '',
-    org_type: 'other'
+    org_type: 'other',
+    needed_by: '',
+    is_perishable: false,
+    bundle_tag: 'other',
+    service_required: false,
+    request_count: '0'
   });
 
   // UI state
@@ -28,10 +33,11 @@ function AddNeed() {
 
   // Handle input changes
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
+    const nextValue = type === 'checkbox' ? checked : value;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: nextValue
     }));
 
     // Clear validation error for this field when user types
@@ -89,6 +95,30 @@ function AddNeed() {
       errors.category = 'Invalid category selected';
     }
 
+    if (formData.needed_by) {
+      const selectedDate = new Date(formData.needed_by);
+      if (Number.isNaN(selectedDate.getTime())) {
+        errors.needed_by = 'Please provide a valid needed by date';
+      } else {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (selectedDate < today) {
+          errors.needed_by = 'Needed by date cannot be in the past';
+        }
+      }
+    }
+
+    if (formData.bundle_tag && !['basic_food', 'winter_clothing', 'hygiene_kit', 'cleaning_supplies', 'beautification', 'other'].includes(formData.bundle_tag)) {
+      errors.bundle_tag = 'Invalid bundle selection';
+    }
+
+    if (formData.request_count !== undefined && formData.request_count !== '') {
+      const requestCountNumber = parseInt(formData.request_count, 10);
+      if (Number.isNaN(requestCountNumber) || requestCountNumber < 0) {
+        errors.request_count = 'Request count must be zero or greater';
+      }
+    }
+
     return errors;
   };
 
@@ -120,6 +150,11 @@ function AddNeed() {
         priority: formData.priority,
         category: formData.category.trim() || null,
         org_type: formData.org_type,
+        needed_by: formData.needed_by || null,
+        is_perishable: Boolean(formData.is_perishable),
+        bundle_tag: formData.bundle_tag,
+        service_required: Boolean(formData.service_required),
+        request_count: formData.request_count === '' ? 0 : parseInt(formData.request_count, 10) || 0,
         manager_id: user.id
       };
 
@@ -138,7 +173,12 @@ function AddNeed() {
           quantity: '',
           priority: 'normal',
           category: '',
-          org_type: 'other'
+          org_type: 'other',
+          needed_by: '',
+          is_perishable: false,
+          bundle_tag: 'other',
+          service_required: false,
+          request_count: '0'
         });
 
         // Scroll to top to see success message
@@ -165,7 +205,7 @@ function AddNeed() {
   };
 
   return (
-    <div className="min-h-screen bg-white p-6 pt-16">
+    <div className="min-h-screen p-6 pt-4 pb-12 animate-slideInRight">
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="mb-4">
@@ -304,6 +344,105 @@ function AddNeed() {
               )}
             </div>
           </div>
+
+        {/* Time Sensitivity */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div>
+            <label className="block text-sm font-bold mb-1">
+              Needed By
+            </label>
+            <input
+              type="date"
+              name="needed_by"
+              value={formData.needed_by}
+              onChange={handleChange}
+              className={`w-full px-3 py-2 border rounded ${validationErrors.needed_by ? 'border-red-500' : ''}`}
+            />
+            <p className="text-slate-600 text-xs mt-1">Helps prioritize items with upcoming deadlines.</p>
+            {validationErrors.needed_by && (
+              <p className="text-red-600 text-xs mt-1">{validationErrors.needed_by}</p>
+            )}
+          </div>
+
+          <div className="flex items-center gap-3 border rounded px-3 py-2">
+            <input
+              type="checkbox"
+              id="is_perishable"
+              name="is_perishable"
+              checked={formData.is_perishable}
+              onChange={handleChange}
+              className="h-4 w-4"
+            />
+            <div>
+              <label htmlFor="is_perishable" className="text-sm font-bold block">
+                Mark as Perishable
+              </label>
+              <p className="text-xs text-slate-600">Urgent after creation and boosts priority scoring.</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Bundles and Services */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div>
+            <label className="block text-sm font-bold mb-1">
+              Bundle Tag
+            </label>
+            <select
+              name="bundle_tag"
+              value={formData.bundle_tag}
+              onChange={handleChange}
+              className={`w-full px-3 py-2 border rounded ${validationErrors.bundle_tag ? 'border-red-500' : ''}`}
+            >
+              <option value="other">No bundle</option>
+              <option value="basic_food">Basic Food Box</option>
+              <option value="hygiene_kit">Hygiene Kit</option>
+              <option value="winter_clothing">Winter Clothing Drive</option>
+              <option value="cleaning_supplies">Cleaning Supplies</option>
+              <option value="beautification">Neighborhood Beautification</option>
+            </select>
+            <p className="text-slate-600 text-xs mt-1">Group similar items for quick helper browsing.</p>
+            {validationErrors.bundle_tag && (
+              <p className="text-red-600 text-xs mt-1">{validationErrors.bundle_tag}</p>
+            )}
+          </div>
+
+          <div className="flex items-center gap-3 border rounded px-3 py-2">
+            <input
+              type="checkbox"
+              id="service_required"
+              name="service_required"
+              checked={formData.service_required}
+              onChange={handleChange}
+              className="h-4 w-4"
+            />
+            <div>
+              <label htmlFor="service_required" className="text-sm font-bold block">
+                Service / Volunteer Task
+              </label>
+              <p className="text-xs text-slate-600">Flag cleanups or distribution activities.</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Request frequency */}
+        <div className="mb-6">
+          <label className="block text-sm font-bold mb-1">
+            Repeated Requests (how often this returns?)
+          </label>
+          <input
+            type="number"
+            name="request_count"
+            min="0"
+            value={formData.request_count}
+            onChange={handleChange}
+            className={`w-full px-3 py-2 border rounded ${validationErrors.request_count ? 'border-red-500' : ''}`}
+          />
+          <p className="text-slate-600 text-xs mt-1">Use this to highlight frequently recurring needs.</p>
+          {validationErrors.request_count && (
+            <p className="text-red-600 text-xs mt-1">{validationErrors.request_count}</p>
+          )}
+        </div>
 
           {/* Organization Type */}
           <div className="mb-6">

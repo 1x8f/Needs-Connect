@@ -14,6 +14,24 @@ const needsController = require('../controllers/needsController');
 router.get('/', needsController.getAllNeeds);
 
 /**
+ * @route   GET /api/needs/urgent
+ * @desc    Get top urgent/time-sensitive needs
+ */
+router.get('/urgent', needsController.getUrgentNeeds);
+
+/**
+ * @route   GET /api/needs/bundle/:bundleTag
+ * @desc    Get needs grouped by bundle tag (e.g. hygiene kits)
+ */
+router.get('/bundle/:bundleTag', needsController.getBundleNeeds);
+
+/**
+ * @route   GET /api/needs/beautification
+ * @desc    Get beautification/service tasks
+ */
+router.get('/beautification', needsController.getBeautificationNeeds);
+
+/**
  * @route   GET /api/needs/:id
  * @desc    Get a single need by ID
  * @access  Public

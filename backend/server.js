@@ -33,6 +33,7 @@ const authRoutes = require('./routes/auth');
 const needsRoutes = require('./routes/needs');
 const basketRoutes = require('./routes/basket');
 const fundingRoutes = require('./routes/funding');
+const eventsRoutes = require('./routes/events');
 
 // Routes
 
@@ -52,6 +53,7 @@ app.use('/api/basket', basketRoutes);
 
 // Funding routes
 app.use('/api/funding', fundingRoutes);
+app.use('/api/events', eventsRoutes);
 
 // Server Configuration
 const PORT = process.env.PORT || 5000;
