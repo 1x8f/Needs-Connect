@@ -148,10 +148,27 @@ const NeedsList = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-emerald-600 mb-4"></div>
-          <p className="text-gray-600 font-medium">Loading opportunities...</p>
+      <div className="min-h-screen flex items-center justify-center relative">
+        {/* Animated background elements */}
+        <div className="absolute inset-0">
+          <div className="absolute top-20 left-20 w-64 h-64 bg-sky-500/10 rounded-full blur-3xl animate-float"></div>
+          <div className="absolute bottom-20 right-20 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-float-delayed"></div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-white/5 rounded-full blur-3xl animate-pulse-slow"></div>
+        </div>
+        
+        <div className="relative z-10 text-center">
+          <div className="mb-8">
+            <div className="relative inline-block">
+              <svg className="w-16 h-16 text-sky-300 animate-spin" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+              <div className="absolute inset-0 bg-gradient-to-r from-sky-400 to-blue-500 rounded-full blur-xl opacity-50 animate-glow"></div>
+            </div>
+          </div>
+          <h2 className="text-2xl font-bold text-white mb-2 bg-gradient-to-r from-sky-200 to-white bg-clip-text text-transparent">
+            Loading Opportunities
+          </h2>
+          <p className="text-sky-100 text-sm">Finding ways to make a difference...</p>
         </div>
       </div>
     );
@@ -159,10 +176,29 @@ const NeedsList = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">{error}</p>
-          <button onClick={fetchNeeds} className="btn-green-primary">Try Again</button>
+      <div className="min-h-screen flex items-center justify-center relative">
+        <div className="text-center relative z-10">
+          <div className="mb-8">
+            <svg className="w-20 h-20 text-red-400 mx-auto mb-4" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold text-white mb-4 bg-gradient-to-r from-red-200 to-white bg-clip-text text-transparent">
+            Something went wrong
+          </h2>
+          <p className="text-sky-100 mb-6 max-w-md mx-auto">{error}</p>
+          <button 
+            onClick={fetchNeeds} 
+            className="px-6 py-3 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-sky-500/30 transform hover:-translate-y-0.5"
+          >
+            Try Again
+          </button>
+        </div>
+        
+        {/* Animated background elements */}
+        <div className="absolute inset-0">
+          <div className="absolute top-20 left-20 w-64 h-64 bg-red-500/10 rounded-full blur-3xl animate-float"></div>
+          <div className="absolute bottom-20 right-20 w-96 h-96 bg-red-500/10 rounded-full blur-3xl animate-float-delayed"></div>
         </div>
       </div>
     );
@@ -171,27 +207,27 @@ const NeedsList = () => {
   return (
     <div className="min-h-screen pt-6 pb-16 animate-slideInRight">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Hero Section - Apple Style */}
+        {/* Hero Section - Beautiful Blue Theme */}
         <div className="hero-section mb-16 animate-slideInUp text-center">
           <div className="max-w-4xl mx-auto">
-            <h1 className="text-5xl lg:text-7xl font-semibold text-gray-900 mb-6 leading-tight tracking-tight">
-              Make an <span className="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">Impact</span>
+            <h1 className="text-5xl lg:text-7xl font-bold text-white mb-6 leading-tight tracking-tight">
+              Make an <span className="bg-gradient-to-r from-sky-300 to-blue-400 bg-clip-text text-transparent">Impact</span>
             </h1>
-            <p className="text-xl lg:text-2xl text-gray-600 mb-12 leading-relaxed font-normal">
+            <p className="text-xl lg:text-2xl text-sky-100 mb-12 leading-relaxed font-normal">
               Transform lives by supporting community needs. Every contribution creates lasting change.
             </p>
-            <div className="flex flex-wrap justify-center gap-4">
-              <div className="stat-card">
-                <div className="text-3xl font-semibold text-gray-900">{needs.length}</div>
-                <div className="text-sm text-gray-600 font-medium">Active Needs</div>
+            <div className="flex flex-wrap justify-center gap-6">
+              <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 shadow-xl hover:shadow-2xl hover:shadow-sky-500/20 transition-all duration-300 transform hover:-translate-y-1">
+                <div className="text-3xl font-bold text-white mb-2">{needs.length}</div>
+                <div className="text-sm text-sky-200 font-medium">Active Needs</div>
               </div>
-              <div className="stat-card">
-                <div className="text-3xl font-semibold text-gray-900">{needs.filter(n => n.urgency_score >= 70).length}</div>
-                <div className="text-sm text-gray-600 font-medium">Urgent</div>
+              <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 shadow-xl hover:shadow-2xl hover:shadow-sky-500/20 transition-all duration-300 transform hover:-translate-y-1">
+                <div className="text-3xl font-bold text-white mb-2">{needs.filter(n => n.urgency_score >= 70).length}</div>
+                <div className="text-sm text-sky-200 font-medium">Urgent</div>
               </div>
-              <div className="stat-card">
-                <div className="text-3xl font-semibold text-gray-900">{needs.filter(n => n.service_required).length}</div>
-                <div className="text-sm text-gray-600 font-medium">Volunteer Opportunities</div>
+              <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 shadow-xl hover:shadow-2xl hover:shadow-sky-500/20 transition-all duration-300 transform hover:-translate-y-1">
+                <div className="text-3xl font-bold text-white mb-2">{needs.filter(n => n.service_required).length}</div>
+                <div className="text-sm text-sky-200 font-medium">Volunteer Opportunities</div>
               </div>
             </div>
           </div>
