@@ -5,8 +5,8 @@ Software Engineering Competition prototype that links community helpers with a c
 ## 🚀 Quick Start
 
 ### Prerequisites
-- [ ] Node.js 18+ installed (`node --version`)
 - [ ] npm 9+ installed (`npm --version`)
+- [ ] Node.js 18+ installed (`node --version`)
 - [ ] 3 terminal windows ready
 
 ### Setup Steps
