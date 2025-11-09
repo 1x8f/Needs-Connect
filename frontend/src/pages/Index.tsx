@@ -312,7 +312,12 @@ const Index = () => {
               <Heart className="h-5 w-5" />
               Get Started Now
             </Button>
-            <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10" onClick={() => navigate("/needs")}>
+            <Button 
+              size="lg" 
+              variant="ghost" 
+              className="border-2 border-white/90 bg-transparent/0 text-white hover:bg-white/20 hover:border-white" 
+              onClick={() => navigate("/needs")}
+            >
               Browse Needs
             </Button>
           </div>

@@ -47,7 +47,7 @@ const Needs = () => {
       setLoading(true);
       const filters: Record<string, any> = {
         sort: 'urgency',
-        timeSensitiveOnly: true
+        timeSensitiveOnly: false  // Show all needs, not just time-sensitive ones
       };
 
       if (priorityFilter !== "all") {

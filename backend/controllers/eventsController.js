@@ -365,11 +365,233 @@ const cancelSignup = async (req, res) => {
   }
 };
 
+const updateEvent = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      need_id,
+      event_type,
+      event_start,
+      event_end,
+      location,
+      volunteer_slots,
+      notes
+    } = req.body;
+
+    // Validate ID
+    if (isNaN(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid event ID - must be a number'
+      });
+    }
+
+    // Check if event exists
+    const [existingEvents] = await pool.query(
+      'SELECT * FROM distribution_events WHERE id = ?',
+      [id]
+    );
+
+    if (existingEvents.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Event not found'
+      });
+    }
+
+    // Build dynamic update query
+    const updates = [];
+    const values = [];
+
+    if (need_id !== undefined) {
+      // Verify need exists
+      const [needRows] = await pool.query('SELECT id FROM needs WHERE id = ?', [need_id]);
+      if (needRows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'Associated need not found'
+        });
+      }
+      updates.push('need_id = ?');
+      values.push(need_id);
+    }
+
+    if (event_type !== undefined) {
+      if (!EVENT_TYPES.has(event_type)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid event_type value'
+        });
+      }
+      updates.push('event_type = ?');
+      values.push(event_type);
+    }
+
+    if (event_start !== undefined) {
+      const startDate = new Date(event_start);
+      if (Number.isNaN(startDate.getTime())) {
+        return res.status(400).json({
+          success: false,
+          message: 'event_start must be a valid date/time'
+        });
+      }
+      updates.push('event_start = ?');
+      values.push(startDate.toISOString().slice(0, 19).replace('T', ' '));
+    }
+
+    if (event_end !== undefined) {
+      if (event_end === null || event_end === '') {
+        updates.push('event_end = ?');
+        values.push(null);
+      } else {
+        const endDate = new Date(event_end);
+        if (Number.isNaN(endDate.getTime())) {
+          return res.status(400).json({
+            success: false,
+            message: 'event_end must be a valid date/time'
+          });
+        }
+        
+        // Check if end is after start
+        const startDate = event_start ? new Date(event_start) : new Date(existingEvents[0].event_start);
+        if (endDate < startDate) {
+          return res.status(400).json({
+            success: false,
+            message: 'event_end cannot be earlier than event_start'
+          });
+        }
+        
+        updates.push('event_end = ?');
+        values.push(endDate.toISOString().slice(0, 19).replace('T', ' '));
+      }
+    }
+
+    if (location !== undefined) {
+      updates.push('location = ?');
+      values.push(location || null);
+    }
+
+    if (volunteer_slots !== undefined) {
+      const slots = parseInt(volunteer_slots, 10);
+      if (Number.isNaN(slots) || slots < 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'volunteer_slots must be 0 or greater'
+        });
+      }
+      updates.push('volunteer_slots = ?');
+      values.push(slots);
+    }
+
+    if (notes !== undefined) {
+      updates.push('notes = ?');
+      values.push(notes || null);
+    }
+
+    // Check if there are any fields to update
+    if (updates.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No fields provided to update'
+      });
+    }
+
+    // Add ID to values array for WHERE clause
+    values.push(id);
+
+    // Execute update query
+    const updateQuery = `UPDATE distribution_events SET ${updates.join(', ')} WHERE id = ?`;
+    await pool.query(updateQuery, values);
+
+    // Retrieve updated event
+    const [updatedEvents] = await pool.query(
+      `SELECT 
+         e.*, 
+         n.title AS need_title,
+         n.priority,
+         n.bundle_tag,
+         (SELECT COUNT(*) FROM event_volunteers ev WHERE ev.event_id = e.id AND ev.status = 'confirmed') AS confirmed_count,
+         (SELECT COUNT(*) FROM event_volunteers ev WHERE ev.event_id = e.id AND ev.status = 'waitlist') AS waitlist_count
+       FROM distribution_events e
+       LEFT JOIN needs n ON e.need_id = n.id
+       WHERE e.id = ?`,
+      [id]
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: 'Event updated successfully',
+      event: normalizeEvent(updatedEvents[0])
+    });
+
+  } catch (error) {
+    console.error('Error in updateEvent:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to update event',
+      error: error.message
+    });
+  }
+};
+
+const deleteEvent = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    console.log(`DELETE request received for event ID: ${id}`);
+
+    // Validate ID
+    if (isNaN(id)) {
+      console.log(`Invalid event ID: ${id}`);
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid event ID - must be a number'
+      });
+    }
+
+    // Check if event exists
+    const [existingEvents] = await pool.query(
+      'SELECT * FROM distribution_events WHERE id = ?',
+      [id]
+    );
+
+    if (existingEvents.length === 0) {
+      console.log(`Event not found: ${id}`);
+      return res.status(404).json({
+        success: false,
+        message: 'Event not found'
+      });
+    }
+
+    console.log(`Deleting event: ${id}`);
+    
+    // Delete event (CASCADE will delete associated volunteers)
+    await pool.query('DELETE FROM distribution_events WHERE id = ?', [id]);
+
+    console.log(`Event ${id} deleted successfully`);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Event deleted successfully'
+    });
+
+  } catch (error) {
+    console.error('Error in deleteEvent:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to delete event',
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   createEvent,
   getUpcomingEvents,
   getEventsForNeed,
   signupForEvent,
-  cancelSignup
+  cancelSignup,
+  updateEvent,
+  deleteEvent
 };
 

@@ -12,6 +12,7 @@ import Needs from "./pages/Needs";
 import Basket from "./pages/Basket";
 import Dashboard from "./pages/Dashboard";
 import AddNeed from "./pages/AddNeed";
+import EditNeed from "./pages/EditNeed";
 import Events from "./pages/Events";
 import HelperActivity from "./pages/HelperActivity";
 import NotFound from "./pages/NotFound";
@@ -35,6 +36,7 @@ const App = () => (
                   <Route path="/basket" element={<Basket />} />
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/add-need" element={<AddNeed />} />
+                  <Route path="/edit-need/:id" element={<EditNeed />} />
                   <Route path="/events" element={<Events />} />
                   <Route path="/helper-activity" element={<HelperActivity />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

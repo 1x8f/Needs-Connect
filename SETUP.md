@@ -1,242 +1,264 @@
-# Setup Guide for Needs Connect
+# Needs Connect - Setup Guide for Competition Judges
 
-This guide will help you set up the project on a new machine.
+This guide will help you set up and run the Needs Connect application on your computer.
 
 ## Prerequisites
 
-- **Node.js** (v16 or higher) - [Download](https://nodejs.org/)
-- **MySQL or MariaDB** - Either:
-  - Local MySQL/MariaDB installation, OR
-  - Use the bundled MariaDB (runs `npm run db:start` in backend)
+- **Node.js**: Version 18 or higher (check with `node --version`)
+- **npm**: Version 9 or higher (comes with Node.js, check with `npm --version`)
+- **Terminal/Command Prompt**: To run commands
+- **3 Terminal Windows**: One for database, one for backend, one for frontend
 
-## Quick Start
+## Quick Start (5 Minutes)
 
-### 1. Clone the Repository
+### Step 1: Install Dependencies
 
 ```bash
-git clone <your-repo-url>
-cd Needs-Connect
+# Install backend dependencies
+cd backend
+npm install
+
+# Install frontend dependencies
+cd ../frontend
+npm install
 ```
 
-### 2. Backend Setup
+### Step 2: Configure Environment Variables
+
+Create a `.env` file in the `backend` directory:
 
 ```bash
 cd backend
-
-# Install dependencies
-npm install
-
-# Create .env file (copy from .env.example)
-# On Windows:
-copy .env.example .env
-
-# On Mac/Linux:
-cp .env.example .env
-
-# Edit .env file with your database credentials:
-# DB_HOST=127.0.0.1
-# DB_USER=root
-# DB_PASSWORD=your_password
-# DB_NAME=needs_connect
 ```
 
-**Option A: Using Bundled MariaDB (Easier)**
-```bash
-# In one terminal - Start bundled database
-npm run db:start
-
-# In another terminal - Setup database schema
-node setup-db.js
-
-# Optional: Seed with sample data
-npm run seed
-```
-
-**Option B: Using Local MySQL/MariaDB**
-```bash
-# Make sure MySQL is running
-# Update .env with your MySQL credentials
-# Then run:
-node setup-db.js
-
-# Optional: Seed with sample data
-npm run seed
-```
-
-**Start the backend server:**
-```bash
-npm start
-# Server runs on http://localhost:5000
-```
-
-### 3. Frontend Setup
-
-```bash
-cd ../frontend
-
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
-# Frontend runs on http://localhost:3000
-```
-
-## Verification
-
-1. **Backend**: Visit `http://localhost:5000/api/test` - should return `{"message":"Backend is working!"}`
-2. **Frontend**: Visit `http://localhost:3000` - should show the landing page
-3. **Login**: 
-   - Use username `admin` for manager role
-   - Use any other username for helper role
-
-## Project Structure
-
-```
-Needs-Connect/
-├── backend/
-│   ├── controllers/     # API route handlers
-│   ├── database/        # Database schema and connection
-│   ├── middleware/      # Auth middleware (placeholder)
-│   ├── routes/          # API route definitions
-│   ├── scripts/         # Database setup and seed scripts
-│   ├── server.js        # Express server entry point
-│   └── .env            # Database configuration (create from .env.example)
-│
-└── frontend/
-    ├── src/
-    │   ├── components/  # React components
-    │   ├── pages/       # Page components
-    │   ├── services/    # API service functions
-    │   ├── context/     # React context (Auth)
-    │   └── App.tsx     # Main app component
-    └── vite.config.ts   # Vite configuration (proxy setup)
-```
-
-## Environment Variables
-
-### Backend (.env)
+Create `backend/.env` with the following content:
 
 ```env
-DB_HOST=127.0.0.1          # Database host
-DB_USER=root               # Database username
-DB_PASSWORD=               # Database password (empty for default)
-DB_NAME=needs_connect      # Database name
-PORT=5000                  # Server port (optional)
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=
+DB_NAME=needs_connect
+PORT=5000
 ```
 
-## Common Issues
+**Note**: These are the default values for the bundled MariaDB. If you have your own MySQL server, update the values accordingly.
 
-### Database Connection Error
-
-**Problem**: `Error connecting to MySQL database`
-
-**Solutions**:
-1. Make sure MySQL/MariaDB is running
-2. Check `.env` file has correct credentials
-3. Verify database exists: `node setup-db.js` will create it
-4. On Windows, try `127.0.0.1` instead of `localhost`
-
-### Port Already in Use
-
-**Problem**: `Port 3000/5000 is already in use`
-
-**Solutions**:
-1. Stop other applications using those ports
-2. Or change ports in:
-   - Backend: Set `PORT=5001` in `.env`
-   - Frontend: Update `vite.config.ts` port and proxy target
-
-### Frontend Can't Connect to Backend
-
-**Problem**: API calls fail with CORS or connection errors
-
-**Solutions**:
-1. Make sure backend is running on port 5000
-2. Check `vite.config.ts` proxy configuration
-3. Verify backend CORS is enabled (it is by default)
-
-### Missing Dependencies
-
-**Problem**: `Module not found` errors
-
-**Solutions**:
-1. Delete `node_modules` and `package-lock.json`
-2. Run `npm install` again
-3. Make sure you're using Node.js v16+
-
-## Development Workflow
-
-1. **Start Database** (if using bundled MariaDB):
-   ```bash
-   cd backend
-   npm run db:start
-   ```
-
-2. **Start Backend** (in separate terminal):
-   ```bash
-   cd backend
-   npm start
-   # or for auto-reload: npm run dev
-   ```
-
-3. **Start Frontend** (in separate terminal):
-   ```bash
-   cd frontend
-   npm run dev
-   ```
-
-4. **Access Application**:
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:5000/api
-
-## Production Build
-
-### Frontend
+**Verify your setup** (optional but recommended):
 ```bash
-cd frontend
-npm run build
-# Output in frontend/dist/
+npm run verify
 ```
 
-### Backend
+This will check that all dependencies are installed and environment variables are configured correctly.
+
+### Step 3: Start the Database
+
+Open **Terminal 1** and run:
+
+```bash
+cd backend
+npm run db:start
+```
+
+**What to expect:**
+- First run: You'll see "Extracting bundled MySQL..." - this takes 1-2 minutes
+- After extraction: "Starting bundled MySQL server..."
+- Leave this terminal open - the database must stay running
+
+**Troubleshooting:**
+- If you see port conflicts, make sure port 3306 is not in use
+- On Windows: If you get permission errors, run terminal as Administrator
+- Wait for "MySQL server started" message before proceeding
+
+### Step 4: Initialize the Database
+
+Open **Terminal 2** (keep Terminal 1 running) and run:
+
+```bash
+cd backend
+node setup-db.js
+```
+
+**What to expect:**
+- "Connected to MySQL server"
+- "Database 'needs_connect' created or already exists"
+- "Executed statement X successfully" (multiple statements)
+- "Database setup complete!"
+
+**Troubleshooting:**
+- If you get connection errors, make sure Terminal 1 (database) is still running
+- Wait a few seconds after starting the database before running setup-db.js
+
+### Step 5: (Optional) Seed Sample Data
+
+Still in **Terminal 2**:
+
+```bash
+npm run seed
+```
+
+This populates the database with sample needs, users, and events for testing.
+
+### Step 6: Start the Backend Server
+
+Still in **Terminal 2** (or open a new Terminal 3):
+
 ```bash
 cd backend
 npm start
-# Make sure .env is configured for production database
 ```
+
+**What to expect:**
+- "Database pool created successfully"
+- "Server is running on port 5000"
+
+**Troubleshooting:**
+- If port 5000 is in use, change `PORT=5001` in `backend/.env` and restart
+- If you see database connection errors, check that Terminal 1 (database) is running
+
+### Step 7: Start the Frontend
+
+Open **Terminal 3** (or use a new terminal):
+
+```bash
+cd frontend
+npm run dev
+```
+
+**What to expect:**
+- Vite dev server starting
+- "Local: http://localhost:3000"
+- Browser may automatically open
+
+### Step 8: Access the Application
+
+Open your browser and go to: **http://localhost:3000**
 
 ## Testing the Application
 
-1. **Login as Manager**:
-   - Username: `admin`
-   - Should redirect to Dashboard
-   - Can create needs, schedule events, view helper activity
+### Default Users
 
-2. **Login as Helper**:
-   - Username: any other name (e.g., `john`)
-   - Should redirect to Needs page
-   - Can browse needs, add to basket, checkout
+- **Manager**: Username `admin` (has manager privileges)
+- **Helper**: Any username (defaults to helper role)
 
-3. **Test Features**:
-   - Create a need (manager)
-   - Browse needs (helper)
-   - Add to basket and checkout (helper)
-   - View helper activity (manager)
-   - Schedule events (manager)
+### Key Features to Test
 
-## Notes
+1. **Login**: Use `admin` to login as a manager
+2. **Create Need**: Go to Manager → Add Need
+3. **Browse Needs**: Go to Browse to see all needs
+4. **Add to Basket**: Click "Add to Basket" on any need
+5. **Checkout**: Go to Basket and complete contribution
+6. **Events**: Manager → Manage Events to schedule volunteer events
+7. **Volunteer**: Helper → Volunteer to sign up for events
 
-- The `.env` file is gitignored - you need to create it from `.env.example`
-- The `frontend-old/` directory is the old frontend - can be ignored
-- Database schema is automatically created by `setup-db.js`
-- Sample data can be loaded with `npm run seed` in backend
+## Troubleshooting
 
-## Support
+### Database Won't Start
 
-If you encounter issues:
-1. Check the console for error messages
-2. Verify all environment variables are set
-3. Ensure MySQL is running and accessible
+**Problem**: `npm run db:start` fails or MySQL doesn't start
+
+**Solutions:**
+1. Make sure port 3306 is not already in use
+2. Check if you have another MySQL server running (stop it first)
+3. On Windows: Run terminal as Administrator
+4. Delete `backend/node_modules/mysql-server/lib/xampp` and try again
+5. Check Windows Firewall isn't blocking the connection
+
+### Backend Connection Errors
+
+**Problem**: "Error creating database pool" or connection refused
+
+**Solutions:**
+1. Verify database is running in Terminal 1
+2. Wait 10-15 seconds after starting database before starting backend
+3. Check `.env` file exists in `backend/` directory
+4. Verify `.env` has correct values (especially DB_HOST=localhost)
+5. Try restarting the database: Ctrl+C in Terminal 1, then `npm run db:start` again
+
+### Port Already in Use
+
+**Problem**: "Port 5000 is already in use" or "Port 3000 is already in use"
+
+**Solutions:**
+1. Change `PORT=5001` in `backend/.env` for backend
+2. Change port in `frontend/vite.config.ts` for frontend (line 10)
+3. Or close the application using the port:
+   - Windows: `netstat -ano | findstr :5000` then `taskkill /PID <pid> /F`
+   - Mac/Linux: `lsof -ti:5000 | xargs kill`
+
+### Frontend Can't Connect to Backend
+
+**Problem**: API calls fail or "Failed to connect to server"
+
+**Solutions:**
+1. Verify backend is running on port 5000 (check Terminal 2)
+2. Check `frontend/vite.config.ts` has correct proxy target: `http://localhost:5000`
+3. Make sure both frontend and backend are running
+4. Check browser console for specific error messages
+5. Try accessing `http://localhost:5000/api/test` directly in browser
+
+### Module Not Found Errors
+
+**Problem**: "Cannot find module" or "Module not found"
+
+**Solutions:**
+1. Delete `node_modules` folders: `rm -rf node_modules` (Mac/Linux) or `rmdir /s node_modules` (Windows)
+2. Delete `package-lock.json` files
+3. Run `npm install` again in both `backend/` and `frontend/` directories
+4. Make sure you're in the correct directory when running npm install
+
+### Database Schema Errors
+
+**Problem**: "Table doesn't exist" or schema errors
+
+**Solutions:**
+1. Make sure you ran `node setup-db.js` successfully
+2. Check Terminal 1 (database) is still running
+3. Try running `node setup-db.js` again (it's safe to run multiple times)
+4. Check `backend/database/schema.sql` exists
+
+## Clean Shutdown
+
+To stop the application:
+
+1. **Frontend**: In Terminal 3, press `Ctrl+C`
+2. **Backend**: In Terminal 2, press `Ctrl+C`
+3. **Database**: In Terminal 1, press `Ctrl+C`
+
+## Fresh Start
+
+If something goes wrong and you want to start over:
+
+```bash
+# Stop all running processes (Ctrl+C in each terminal)
+
+# Reset database (optional - deletes all data)
+cd backend
+node setup-db.js  # This will recreate the database
+
+# Restart everything following steps 3-7 above
+```
+
+## Need Help?
+
+If you encounter issues not covered here:
+
+1. Check the terminal output for error messages
+2. Verify all prerequisites are installed
+3. Make sure all three terminals are running (database, backend, frontend)
 4. Check that ports 3000 and 5000 are available
+5. Verify `.env` file exists and has correct values
 
+## System Requirements
+
+- **OS**: Windows 10+, macOS 10.15+, or Linux
+- **RAM**: Minimum 4GB (8GB recommended)
+- **Disk Space**: ~500MB for dependencies + database
+- **Node.js**: v18.0.0 or higher
+- **npm**: v9.0.0 or higher
+
+## Competition Notes
+
+- The application uses a bundled MariaDB database - no separate MySQL installation required
+- All data is stored locally in the database
+- The application runs entirely on localhost - no external services required
+- Sample data can be loaded with `npm run seed` in the backend directory

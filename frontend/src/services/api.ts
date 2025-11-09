@@ -255,6 +255,40 @@ export const createEvent = async (eventData: any) => {
 };
 
 /**
+ * Update existing event
+ * @param eventId - Event ID
+ * @param updateData - Fields to update
+ * @returns Updated event object
+ */
+export const updateEvent = async (eventId: number, updateData: any) => {
+  const response = await fetch(`${API_BASE_URL}/events/${eventId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(updateData)
+  });
+  return response.json();
+};
+
+/**
+ * Delete event
+ * @param eventId - Event ID
+ * @returns Success message
+ */
+export const deleteEvent = async (eventId: number) => {
+  const response = await fetch(`${API_BASE_URL}/events/${eventId}`, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' }
+  });
+  
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ message: 'Failed to delete event' }));
+    throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+  }
+  
+  return response.json();
+};
+
+/**
  * Sign up for event
  * @param eventId - Event ID
  * @param userId - User ID

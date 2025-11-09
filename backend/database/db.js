@@ -30,11 +30,21 @@ const pool = mysql.createPool({
  */
 pool.getConnection()
   .then(connection => {
-    console.log('Database pool created successfully');
+    console.log('✓ Database pool created successfully');
+    console.log(`  Connected to: ${process.env.DB_HOST || 'localhost'}/${process.env.DB_NAME || 'needs_connect'}`);
     connection.release(); // Release connection back to pool
   })
   .catch(err => {
-    console.error('Error creating database pool:', err.message);
+    console.error('✗ Error creating database pool:', err.message);
+    console.error('');
+    console.error('Troubleshooting steps:');
+    console.error('1. Make sure the database server is running (npm run db:start)');
+    console.error('2. Check that .env file exists in backend/ directory');
+    console.error('3. Verify DB_HOST, DB_USER, DB_PASSWORD, and DB_NAME in .env');
+    console.error('4. Wait 10-15 seconds after starting database before starting backend');
+    console.error('5. Run "node setup-db.js" to initialize the database schema');
+    console.error('');
+    console.error('Full error:', err.code || err.message);
   });
 
 // Export the pool for use in other modules

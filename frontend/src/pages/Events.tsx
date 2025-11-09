@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ArrowLeft, Plus, Calendar, MapPin, Users, Clock, Package } from "lucide-react";
+import { ArrowLeft, Plus, Calendar, MapPin, Users, Clock, Package, Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,10 +7,12 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
-import { getUpcomingEvents, createEvent } from "@/services/api";
+import { getUpcomingEvents, createEvent, updateEvent, deleteEvent } from "@/services/api";
 import { getAllNeeds } from "@/services/api";
 
 interface Event {
@@ -43,6 +45,9 @@ const Events = () => {
   const [needs, setNeeds] = useState<Need[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  const [deletingEvent, setDeletingEvent] = useState<Event | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -148,14 +153,23 @@ const Events = () => {
         notes: formData.notes || null
       };
 
-      const response = await createEvent(eventData);
+      let response;
+      if (editingEvent) {
+        response = await updateEvent(editingEvent.id, eventData);
+      } else {
+        response = await createEvent(eventData);
+      }
 
       if (response.success) {
         toast({
-          title: "Event created!",
-          description: "Distribution event has been scheduled successfully.",
+          title: editingEvent ? "Event updated!" : "Event created!",
+          description: editingEvent 
+            ? "Distribution event has been updated successfully."
+            : "Distribution event has been scheduled successfully.",
         });
         setShowCreateForm(false);
+        setShowEditForm(false);
+        setEditingEvent(null);
         setFormData({
           need_id: '',
           event_type: 'distribution',
@@ -169,12 +183,12 @@ const Events = () => {
       } else {
         toast({
           title: "Error",
-          description: response.message || "Failed to create event",
+          description: response.message || `Failed to ${editingEvent ? 'update' : 'create'} event`,
           variant: "destructive"
         });
       }
     } catch (err) {
-      console.error('Error creating event:', err);
+      console.error(`Error ${editingEvent ? 'updating' : 'creating'} event:`, err);
       toast({
         title: "Error",
         description: "Failed to connect to server",
@@ -183,6 +197,76 @@ const Events = () => {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleEdit = (event: Event) => {
+    setEditingEvent(event);
+    // Format datetime for input (YYYY-MM-DDTHH:mm)
+    const formatDateTime = (dateString: string) => {
+      const date = new Date(dateString);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      return `${year}-${month}-${day}T${hours}:${minutes}`;
+    };
+
+    setFormData({
+      need_id: String(event.need_id),
+      event_type: event.event_type,
+      event_start: formatDateTime(event.event_start),
+      event_end: event.event_end ? formatDateTime(event.event_end) : '',
+      location: event.location || '',
+      volunteer_slots: String(event.volunteer_slots || 0),
+      notes: event.notes || ''
+    });
+    setShowEditForm(true);
+  };
+
+  const handleDelete = async () => {
+    if (!deletingEvent) return;
+
+    try {
+      const response = await deleteEvent(deletingEvent.id);
+
+      if (response.success) {
+        toast({
+          title: "Event deleted!",
+          description: "Distribution event has been deleted successfully.",
+        });
+        setDeletingEvent(null);
+        fetchEvents();
+      } else {
+        toast({
+          title: "Error",
+          description: response.message || "Failed to delete event",
+          variant: "destructive"
+        });
+      }
+    } catch (err: any) {
+      console.error('Error deleting event:', err);
+      const errorMessage = err?.message || "Failed to connect to server";
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setShowEditForm(false);
+    setEditingEvent(null);
+    setFormData({
+      need_id: '',
+      event_type: 'distribution',
+      event_start: '',
+      event_end: '',
+      location: '',
+      volunteer_slots: '',
+      notes: ''
+    });
   };
 
   const getEventTypeLabel = (type: string) => {
@@ -381,7 +465,27 @@ const Events = () => {
                         {getEventTypeLabel(event.event_type)}
                       </CardDescription>
                     </div>
-                    <Badge variant="outline">{event.priority}</Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">{event.priority}</Badge>
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => handleEdit(event)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                          onClick={() => setDeletingEvent(event)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-3">
@@ -414,6 +518,146 @@ const Events = () => {
             ))
           )}
         </div>
+
+        {/* Edit Event Dialog */}
+        <Dialog open={showEditForm} onOpenChange={setShowEditForm}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Edit Event</DialogTitle>
+              <DialogDescription>Update the distribution event details</DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="edit_need_id">
+                    Need <span className="text-destructive">*</span>
+                  </Label>
+                  <Select value={formData.need_id} onValueChange={(value) => handleChange('need_id', value)}>
+                    <SelectTrigger id="edit_need_id" className={errors.need_id ? "border-destructive" : ""}>
+                      <SelectValue placeholder="Select a need..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {needs.map(need => (
+                        <SelectItem key={need.id} value={String(need.id)}>{need.title}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.need_id && <p className="text-sm text-destructive">{errors.need_id}</p>}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="edit_event_type">
+                    Event Type <span className="text-destructive">*</span>
+                  </Label>
+                  <Select value={formData.event_type} onValueChange={(value) => handleChange('event_type', value)}>
+                    <SelectTrigger id="edit_event_type" className={errors.event_type ? "border-destructive" : ""}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="distribution">Distribution</SelectItem>
+                      <SelectItem value="delivery">Delivery</SelectItem>
+                      <SelectItem value="cleanup">Cleanup</SelectItem>
+                      <SelectItem value="kit_build">Kit Building</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {errors.event_type && <p className="text-sm text-destructive">{errors.event_type}</p>}
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="edit_event_start">
+                    Start Date & Time <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="edit_event_start"
+                    type="datetime-local"
+                    value={formData.event_start}
+                    onChange={(e) => handleChange('event_start', e.target.value)}
+                    className={errors.event_start ? "border-destructive" : ""}
+                  />
+                  {errors.event_start && <p className="text-sm text-destructive">{errors.event_start}</p>}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="edit_event_end">End Date & Time</Label>
+                  <Input
+                    id="edit_event_end"
+                    type="datetime-local"
+                    value={formData.event_end}
+                    onChange={(e) => handleChange('event_end', e.target.value)}
+                    className={errors.event_end ? "border-destructive" : ""}
+                  />
+                  {errors.event_end && <p className="text-sm text-destructive">{errors.event_end}</p>}
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="edit_location">Location</Label>
+                  <Input
+                    id="edit_location"
+                    type="text"
+                    value={formData.location}
+                    onChange={(e) => handleChange('location', e.target.value)}
+                    placeholder="Event location"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="edit_volunteer_slots">Volunteer Slots</Label>
+                  <Input
+                    id="edit_volunteer_slots"
+                    type="number"
+                    min="0"
+                    value={formData.volunteer_slots}
+                    onChange={(e) => handleChange('volunteer_slots', e.target.value)}
+                    placeholder="Number of volunteers needed"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit_notes">Notes</Label>
+                <Textarea
+                  id="edit_notes"
+                  value={formData.notes}
+                  onChange={(e) => handleChange('notes', e.target.value)}
+                  placeholder="Additional event details..."
+                  rows={3}
+                />
+              </div>
+
+              <div className="flex justify-end gap-2">
+                <Button type="button" variant="outline" onClick={handleCancelEdit}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={submitting}>
+                  {submitting ? 'Updating...' : 'Update Event'}
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={!!deletingEvent} onOpenChange={(open) => !open && setDeletingEvent(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently delete the event "{deletingEvent?.need_title}". This action cannot be undone.
+                All volunteer signups for this event will also be removed.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );

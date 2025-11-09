@@ -46,7 +46,17 @@ const PORT = process.env.PORT || 5000;
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log('');
+  console.log('='.repeat(50));
+  console.log('🚀 Needs Connect Backend Server');
+  console.log('='.repeat(50));
+  console.log(`✓ Server is running on http://localhost:${PORT}`);
+  console.log(`✓ API endpoints available at http://localhost:${PORT}/api`);
+  console.log(`✓ Test endpoint: http://localhost:${PORT}/api/test`);
+  console.log('');
+  console.log('💡 Make sure the frontend is running on http://localhost:3000');
+  console.log('='.repeat(50));
+  console.log('');
 });
 
 

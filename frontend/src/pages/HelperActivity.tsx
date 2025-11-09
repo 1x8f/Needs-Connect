@@ -31,7 +31,6 @@ const HelperActivity = () => {
   const [filteredRecords, setFilteredRecords] = useState<FundingRecord[]>([]);
   const [managerNeeds, setManagerNeeds] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filterByMyNeeds, setFilterByMyNeeds] = useState(true);
 
   useEffect(() => {
     if (!authLoading) {
@@ -61,13 +60,14 @@ const HelperActivity = () => {
       if (fundingResponse.success) {
         const records = fundingResponse.fundingRecords || [];
         setFundingRecords(records);
-        if (filterByMyNeeds && user) {
+        // Only show contributions to manager's needs
+        if (user) {
           const myNeeds = needsResponse.needs || needsResponse || [];
           const myNeedIds = Array.isArray(myNeeds) ? myNeeds.map((n: any) => n.id) : [];
           const filtered = records.filter((r: FundingRecord) => myNeedIds.includes(r.need_id));
           setFilteredRecords(filtered);
         } else {
-          setFilteredRecords(records);
+          setFilteredRecords([]);
         }
       }
     } catch (err) {
@@ -83,13 +83,11 @@ const HelperActivity = () => {
   };
 
   useEffect(() => {
-    if (filterByMyNeeds && user) {
+    if (user && managerNeeds.length > 0) {
       const filtered = fundingRecords.filter(r => managerNeeds.includes(r.need_id));
       setFilteredRecords(filtered);
-    } else {
-      setFilteredRecords(fundingRecords);
     }
-  }, [filterByMyNeeds, fundingRecords, managerNeeds]);
+  }, [fundingRecords, managerNeeds, user]);
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -154,20 +152,6 @@ const HelperActivity = () => {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant={filterByMyNeeds ? "default" : "outline"}
-              onClick={() => setFilterByMyNeeds(true)}
-            >
-              My Needs Only
-            </Button>
-            <Button
-              variant={!filterByMyNeeds ? "default" : "outline"}
-              onClick={() => setFilterByMyNeeds(false)}
-            >
-              All Contributions
-            </Button>
-          </div>
         </div>
 
         {/* Stats */}
@@ -222,7 +206,7 @@ const HelperActivity = () => {
           <CardHeader>
             <CardTitle>Recent Contributions</CardTitle>
             <CardDescription>
-              {filterByMyNeeds ? 'Contributions to your needs' : 'All contributions across the platform'}
+              Contributions to your organization's needs
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -231,9 +215,7 @@ const HelperActivity = () => {
                 <Heart className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
                 <h3 className="text-xl font-semibold mb-2">No contributions yet</h3>
                 <p className="text-muted-foreground">
-                  {filterByMyNeeds 
-                    ? "No one has contributed to your needs yet. Share your needs to get started!"
-                    : "No contributions have been made yet."}
+                  No one has contributed to your needs yet. Share your needs to get started!
                 </p>
               </div>
             ) : (
