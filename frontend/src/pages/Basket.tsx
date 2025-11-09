@@ -466,7 +466,7 @@ const Basket = () => {
                 {/* Standard Checkout Button */}
                 <Button 
                   size="lg" 
-                  variant="warm" 
+                  variant="purpleTurquoise" 
                   className="w-full gap-2"
                   onClick={handleCheckout}
                   disabled={checkingOut || basketItems.length === 0}

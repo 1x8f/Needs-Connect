@@ -42,6 +42,7 @@ All colors MUST be HSL.
     --gradient-primary: linear-gradient(135deg, hsl(262 52% 47%) 0%, hsl(240 70% 60%) 100%);
     --gradient-warm: linear-gradient(135deg, hsl(16 82% 62%) 0%, hsl(340 82% 62%) 100%);
     --gradient-cool: linear-gradient(135deg, hsl(175 65% 52%) 0%, hsl(200 70% 60%) 100%);
+    --gradient-purple-turquoise: linear-gradient(135deg, hsl(262 52% 47%) 0%, hsl(175 65% 52%) 100%);
     --gradient-soft: linear-gradient(180deg, hsl(280 40% 98%) 0%, hsl(240 50% 97%) 100%);
     
     /* Shadows */
@@ -132,6 +133,10 @@ All colors MUST be HSL.
   
   .gradient-cool {
     background: var(--gradient-cool);
+  }
+  
+  .gradient-purple-turquoise {
+    background: var(--gradient-purple-turquoise);
   }
   
   .shadow-soft {

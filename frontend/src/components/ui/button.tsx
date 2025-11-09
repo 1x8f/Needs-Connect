@@ -17,6 +17,7 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
         warm: "gradient-warm text-white shadow-soft hover:shadow-medium hover:scale-[1.02] active:scale-[0.98]",
         cool: "gradient-cool text-white shadow-soft hover:shadow-medium hover:scale-[1.02] active:scale-[0.98]",
+        purpleTurquoise: "gradient-purple-turquoise text-white shadow-soft hover:shadow-medium hover:scale-[1.02] active:scale-[0.98]",
       },
       size: {
         default: "h-10 px-5 py-2",

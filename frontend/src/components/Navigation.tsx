@@ -61,7 +61,7 @@ const Navigation = () => {
           {user && (
             <div className="flex items-center gap-2">
               <Button
-                variant={isActive("/") ? "default" : "ghost"}
+                variant={isActive("/") ? "purpleTurquoise" : "ghost"}
                 onClick={() => navigate("/")}
                 className="gap-2"
               >
@@ -70,7 +70,7 @@ const Navigation = () => {
               </Button>
 
               <Button
-                variant={isActive("/needs") ? "default" : "ghost"}
+                variant={isActive("/needs") ? "purpleTurquoise" : "ghost"}
                 onClick={() => navigate("/needs")}
                 className="gap-2"
               >
@@ -80,7 +80,7 @@ const Navigation = () => {
 
               {isManager && (
                 <Button
-                  variant={isActive("/dashboard") ? "default" : "ghost"}
+                  variant={isActive("/dashboard") ? "purpleTurquoise" : "ghost"}
                   onClick={() => navigate("/dashboard")}
                   className="gap-2"
                 >
@@ -90,7 +90,7 @@ const Navigation = () => {
               )}
 
               <Button
-                variant={isActive("/basket") ? "secondary" : "outline"}
+                variant={isActive("/basket") ? "purpleTurquoise" : "outline"}
                 onClick={() => navigate("/basket")}
                 className="gap-2 relative"
               >
