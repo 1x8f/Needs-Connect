@@ -36,7 +36,7 @@ const Needs = () => {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, isManager } = useAuth();
 
   useEffect(() => {
     fetchNeeds();
@@ -359,15 +359,18 @@ const Needs = () => {
                 </CardContent>
 
                 <CardFooter className="flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    className="flex-1"
-                    onClick={() => handleAddToBasket(need)}
-                    disabled={!isAvailable}
-                  >
-                    <ShoppingCart className="h-4 w-4 mr-2" />
-                    Add to Basket
-                  </Button>
+                  {/* Only show "Add to Basket" button for helpers, not managers */}
+                  {!isManager && (
+                    <Button 
+                      variant="outline" 
+                      className="flex-1"
+                      onClick={() => handleAddToBasket(need)}
+                      disabled={!isAvailable}
+                    >
+                      <ShoppingCart className="h-4 w-4 mr-2" />
+                      Add to Basket
+                    </Button>
+                  )}
                   {!isAvailable && (
                     <Badge variant="secondary" className="text-xs">
                       Fully Funded

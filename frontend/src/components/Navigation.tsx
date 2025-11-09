@@ -15,15 +15,16 @@ const Navigation = () => {
   const isActive = (path: string) => location.pathname === path;
 
   useEffect(() => {
-    if (user) {
+    // Only fetch basket count for helpers, not managers
+    if (user && !isManager) {
       fetchBasketCount();
       const interval = setInterval(fetchBasketCount, 5000); // Refresh every 5 seconds
       return () => clearInterval(interval);
     }
-  }, [user]);
+  }, [user, isManager]);
 
   const fetchBasketCount = async () => {
-    if (!user) return;
+    if (!user || isManager) return;
     try {
       const response = await getBasket(user.id);
       if (response.success && response.basket) {
@@ -89,19 +90,22 @@ const Navigation = () => {
                 </Button>
               )}
 
-              <Button
-                variant={isActive("/basket") ? "purpleTurquoise" : "outline"}
-                onClick={() => navigate("/basket")}
-                className="gap-2 relative"
-              >
-                <ShoppingBasket className="h-4 w-4" />
-                Basket
-                {basketCount > 0 && (
-                  <Badge variant="secondary" className="ml-1 absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs">
-                    {basketCount}
-                  </Badge>
-                )}
-              </Button>
+              {/* Only show basket button for helpers, not managers */}
+              {!isManager && (
+                <Button
+                  variant={isActive("/basket") ? "purpleTurquoise" : "outline"}
+                  onClick={() => navigate("/basket")}
+                  className="gap-2 relative"
+                >
+                  <ShoppingBasket className="h-4 w-4" />
+                  Basket
+                  {basketCount > 0 && (
+                    <Badge variant="secondary" className="ml-1 absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs">
+                      {basketCount}
+                    </Badge>
+                  )}
+                </Button>
+              )}
 
               {user && (
                 <div className="flex items-center gap-2 ml-4 pl-4 border-l">

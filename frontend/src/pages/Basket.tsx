@@ -21,7 +21,7 @@ interface BasketItem {
 const Basket = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, isManager } = useAuth();
   const [basketItems, setBasketItems] = useState<BasketItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [checkingOut, setCheckingOut] = useState(false);
@@ -30,13 +30,24 @@ const Basket = () => {
     // Wait for auth to finish loading
     if (authLoading) return;
 
+    // Managers should not have access to basket - redirect to dashboard
+    if (isManager) {
+      toast({
+        title: "Access Restricted",
+        description: "Managers do not have access to the basket. Redirecting to dashboard.",
+        variant: "destructive"
+      });
+      navigate("/dashboard");
+      return;
+    }
+
     if (user) {
       fetchBasket();
     } else {
       setLoading(false);
       navigate("/");
     }
-  }, [user, authLoading, navigate]);
+  }, [user, authLoading, isManager, navigate, toast]);
 
   const fetchBasket = async () => {
     if (!user) return;
