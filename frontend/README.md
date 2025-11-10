@@ -30,6 +30,10 @@ The frontend will run on `http://localhost:3000` and proxy API requests to the b
 - `/needs` - Browse all needs
 - `/basket` - Shopping cart
 - `/dashboard` - Manager dashboard (manager role only)
+- `/volunteer` - Volunteer opportunities (helper role only)
+- `/events` - Event management (manager role only)
+- `/add-need` - Create new need (manager role only)
+- `/edit-need/:id` - Edit need (manager role only)
 
 ## API Integration
 
