@@ -1,4 +1,4 @@
-import { Heart, ShoppingBasket, LayoutDashboard, Home, LogOut } from "lucide-react";
+import { Heart, ShoppingBasket, LayoutDashboard, Home, LogOut, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -78,6 +78,18 @@ const Navigation = () => {
                 <ShoppingBasket className="h-4 w-4" />
                 Browse Needs
               </Button>
+
+              {/* Volunteer link for helpers */}
+              {!isManager && (
+                <Button
+                  variant={isActive("/volunteer") ? "purpleTurquoise" : "ghost"}
+                  onClick={() => navigate("/volunteer")}
+                  className="gap-2"
+                >
+                  <UserPlus className="h-4 w-4" />
+                  Volunteer
+                </Button>
+              )}
 
               {isManager && (
                 <Button

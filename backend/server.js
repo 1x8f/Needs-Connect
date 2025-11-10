@@ -1,50 +1,93 @@
-// Import required packages
+/**
+ * Needs Connect Backend Server
+ * 
+ * Main entry point for the Express.js REST API server.
+ * Handles routing, middleware configuration, and server initialization.
+ * 
+ * Architecture:
+ * - Express.js for HTTP server and routing
+ * - MySQL connection pooling for efficient database operations
+ * - RESTful API design with clear separation of concerns
+ * - CORS enabled for frontend communication
+ * 
+ * @module server
+ */
+
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 
-// Import database pool (used by controllers)
-// This ensures the database connection is initialized
+// Initialize database connection pool
+// This import ensures the database connection is established on server startup
+// The pool is exported and used by all controllers for database operations
 require('./database/db');
 
-// Initialize Express app
+// Initialize Express application
 const app = express();
 
-// Middleware
-app.use(cors()); // Enable CORS for frontend communication
-app.use(express.json()); // Parse JSON request bodies
+// ============================================
+// Middleware Configuration
+// ============================================
 
-// Import Routes
+// CORS: Enable Cross-Origin Resource Sharing for frontend communication
+// Allows the React frontend (localhost:3000) to make API requests
+app.use(cors());
+
+// JSON Parser: Parse incoming request bodies as JSON
+// Required for POST/PUT requests with JSON payloads
+app.use(express.json());
+
+// ============================================
+// Route Imports
+// ============================================
+// Each route module handles a specific domain:
+// - auth: User authentication and registration
+// - needs: Need management (CRUD operations)
+// - basket: Shopping cart functionality
+// - funding: Checkout and transaction processing
+// - events: Volunteer event management
+
 const authRoutes = require('./routes/auth');
 const needsRoutes = require('./routes/needs');
 const basketRoutes = require('./routes/basket');
 const fundingRoutes = require('./routes/funding');
 const eventsRoutes = require('./routes/events');
 
-// Routes
+// ============================================
+// API Routes
+// ============================================
 
-// Test route to verify backend is running
+/**
+ * Health Check Endpoint
+ * Simple endpoint to verify the server is running
+ * Useful for monitoring and debugging
+ */
 app.get('/api/test', (req, res) => {
   res.json({ message: 'Backend is working!' });
 });
 
-// Authentication routes
-app.use('/api/auth', authRoutes);
+// Mount route handlers
+app.use('/api/auth', authRoutes);      // Authentication endpoints
+app.use('/api/needs', needsRoutes);    // Needs management endpoints
+app.use('/api/basket', basketRoutes);  // Shopping cart endpoints
+app.use('/api/funding', fundingRoutes); // Checkout and funding endpoints
+app.use('/api/events', eventsRoutes);  // Volunteer event endpoints
 
-// Needs routes
-app.use('/api/needs', needsRoutes);
+// ============================================
+// Server Configuration & Startup
+// ============================================
 
-// Basket routes
-app.use('/api/basket', basketRoutes);
-
-// Funding routes
-app.use('/api/funding', fundingRoutes);
-app.use('/api/events', eventsRoutes);
-
-// Server Configuration
+/**
+ * Server Port Configuration
+ * Uses PORT from environment variables or defaults to 5000
+ * This allows flexibility for different deployment environments
+ */
 const PORT = process.env.PORT || 5000;
 
-// Start server
+/**
+ * Start the Express server
+ * Listens on the configured port and logs server information
+ */
 app.listen(PORT, () => {
   console.log('');
   console.log('='.repeat(50));

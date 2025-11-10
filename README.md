@@ -1,15 +1,60 @@
 # Needs Connect
 
-Software Engineering Competition prototype that links community helpers with a coalition of food/shelter services and neighborhood-beautification teams.
+> **A comprehensive platform connecting community helpers with nonprofit organizations to fulfill urgent needs and coordinate volunteer efforts.**
+
+Needs Connect is a full-stack web application designed for the RIT Software Engineering Competition. It enables nonprofit managers to post urgent needs (food, clothing, supplies, services) while allowing community helpers to browse, fund, and volunteer for these needs. The platform features intelligent urgency scoring, bundle management, and a complete volunteer event coordination system.
+
+## 🎯 Project Overview
+
+This application solves the critical problem of connecting community resources with nonprofit organizations that need them most. Key innovations include:
+
+- **Intelligent Urgency Scoring**: Automatically calculates priority based on deadlines, perishability, inventory levels, and demand
+- **Bundle Management**: Groups related items (food boxes, hygiene kits, etc.) for efficient fulfillment
+- **Volunteer Coordination**: Complete event management system with waitlist handling and capacity tracking
+- **Real-time Dashboard**: Managers can track fulfillment progress and coordinate volunteer efforts
+
+## 🏗️ Architecture
+
+The application follows a clean separation of concerns:
+
+- **Backend**: RESTful API built with Express.js, using MySQL connection pooling for efficient database operations
+- **Frontend**: Modern React application with TypeScript for type safety, using React Query for efficient data fetching
+- **Database**: Normalized MySQL schema with proper foreign key relationships and indexes for performance
+- **Authentication**: Trust-based system (suitable for competition prototype) with role-based access control
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- [ ] npm 9+ installed (`npm --version`)
-- [ ] Node.js 18+ installed (`node --version`)
-- [ ] 3 terminal windows ready
 
-### Setup Steps
+**Required:**
+- ✅ Node.js 18+ installed (check with `node --version`)
+- ✅ npm 9+ installed (check with `npm --version`)
+- ✅ Windows 10+ (for bundled database) OR MySQL/MariaDB installed (Mac/Linux)
+
+**Recommended:**
+- 3 terminal windows/tabs ready
+- At least 500MB free disk space
+- 4GB RAM minimum (8GB recommended)
+
+### ⚡ Automated Setup (Recommended)
+
+The easiest way to set up the project:
+
+```bash
+# Run the automated setup script
+node setup.js
+```
+
+This script will:
+- ✅ Check prerequisites (Node.js, npm versions)
+- ✅ Create the `.env` file automatically
+- ✅ Install all dependencies (backend + frontend)
+
+**After running setup.js, continue with Step 4 below.**
+
+### 📋 Manual Setup
+
+If you prefer to set up manually or the automated script doesn't work:
 
 #### Step 1: Install Dependencies
 
@@ -36,6 +81,8 @@ PORT=5000
 
 **Note**: These are the default values for the bundled MariaDB. If you have your own MySQL server, update the values accordingly.
 
+**💡 Tip**: The automated setup script (`node setup.js`) creates this file for you!
+
 #### Step 3: Verify Setup (Optional)
 
 ```bash
@@ -44,6 +91,10 @@ npm run verify
 ```
 
 This checks that all dependencies are installed and environment variables are configured correctly.
+
+### 🗄️ Database Setup
+
+**⚠️ Important**: The bundled MySQL server only works on **Windows**. For Mac/Linux, see [Alternative Database Setup](#alternative-database-setup-maclinux) below.
 
 #### Step 4: Start Database (Terminal 1)
 
@@ -60,8 +111,10 @@ npm run db:start
 
 **Troubleshooting:**
 - If you see port conflicts, make sure port 3306 is not in use
-- On Windows: If you get permission errors, run terminal as Administrator
+- On Windows: If you get permission errors, **run terminal as Administrator**
 - Check Windows Firewall isn't blocking the connection
+- If extraction fails, make sure you have at least 200MB free disk space
+- If you see "MySQL bundle not found", run `npm install` again in the backend directory
 
 #### Step 5: Initialize Database (Terminal 2)
 
@@ -135,31 +188,106 @@ Open your browser and go to: **http://localhost:3000**
 - Backend API: http://localhost:5000/api
 - Test endpoint: http://localhost:5000/api/test
 
-## High-Impact Features
+## ✨ Key Features
 
-### Priority & Time-Sensitive Needs Management (Required 10%)
-- Every need tracks `needed_by`, perishable flag, bundle tag, and a computed urgency score.
-- Helpers and managers can sort/filter by urgency, expiration windows, most-requested items, or bundled kits (food boxes, hygiene kits, winter clothing, cleaning supplies).
-- Dashboards highlight critical, perishable, and volunteer-service needs so teams can respond before deadlines.
+### Priority & Time-Sensitive Needs Management (Required Feature - 10%)
 
-### Volunteer Dispatch & Distribution Workflow (Custom 10%)
-- Managers schedule delivery, kit-build, cleanup, or distribution events per need with location, time window, capacity, and notes.
-- Helpers browse `Volunteer` opportunities, view remaining slots, sign up, or cancel; waitlists are handled automatically when events hit capacity.
-- Manager view shows all upcoming events and slot utilization in one place so they can coordinate both goods and staffing.
+**Intelligent Urgency Calculation**
+The system automatically computes an urgency score for each need based on multiple factors:
+- **Base Priority**: Urgent (60), High (40), Normal (20)
+- **Deadline Proximity**: Overdue (+35), 0-3 days (+30), 4-7 days (+20), 8-14 days (+10)
+- **Inventory Status**: Low inventory (<25% remaining) adds +10 points
+- **Perishability**: Perishable items receive +15 points
+- **Demand**: Request count contributes up to +25 points
+- **Service Requirements**: Volunteer needs add +10 points
+
+**Advanced Filtering & Sorting**
+- Sort by urgency score (highest first)
+- Filter by time-sensitive needs (deadlines within 7 days)
+- Filter by bundle tags: Basic Food Box, Hygiene Kit, Winter Clothing, Cleaning Supplies, Beautification
+- Filter by perishable items
+- Filter by service/volunteer requirements
+- Sort by most requested items
+
+**Dashboard Highlights**
+- Critical needs (overdue or urgent priority)
+- Perishable items requiring immediate attention
+- Volunteer-service needs with upcoming deadlines
+
+### Volunteer Dispatch & Distribution Workflow (Custom Feature - 10%)
+
+**Event Management System**
+- **Event Types**: Delivery, Kit Building, Cleanup, Distribution
+- **Scheduling**: Managers can create events with:
+  - Location and time windows
+  - Volunteer capacity (slots)
+  - Detailed notes and instructions
+  - Association with specific needs
+
+**Helper Volunteer Experience**
+- Browse all upcoming volunteer opportunities
+- View event details: location, time, remaining slots, notes
+- Sign up for events with one click
+- Automatic waitlist handling when events reach capacity
+- View personal signup status (Confirmed/Waitlist)
+- Cancel signups with immediate status updates
+
+**Manager Coordination Tools**
+- View all upcoming events in one dashboard
+- See real-time slot utilization (X/Y volunteers confirmed)
+- Track waitlist counts
+- Edit or delete events as needed
+- Monitor volunteer commitments per need
 
 ## User Walkthrough
 
 1. **Manager Login** (use username `admin` to get manager rights)
-2. Visit `Manager` → create or edit needs with deadlines, perishable flag, bundle tags, or volunteer requirements.
-3. `Manage Events` lets managers schedule volunteer shifts tied to specific needs and review upcoming commitments.
-4. Helpers see prioritized needs under `Browse` (sorted by urgency score) and can drill into bundles (food, clothing, hygiene, beautification).
-5. `Volunteer` tab lists scheduled events, remaining slots, and status (confirmed/waitlist/cancelled) for the signed-in helper.
+2. Visit `Dashboard` → create or edit needs with deadlines, perishable flag, bundle tags, or volunteer requirements.
+3. `Events` page lets managers schedule volunteer shifts tied to specific needs and review upcoming commitments.
+4. Helpers see prioritized needs under `Browse Needs` (sorted by urgency score) and can drill into bundles (food, clothing, hygiene, beautification).
+5. `Volunteer` page (accessible from navigation) lists scheduled events, remaining slots, and status (confirmed/waitlist/cancelled) for the signed-in helper.
 
-## API Highlights
-- `GET /api/needs?sort=urgency&timeSensitiveOnly=true` – urgency-sorted queue with remaining quantity and computed score.
-- `GET /api/needs/bundle/basic_food` – bundle kits for quick food-box fulfillment.
-- `GET /api/events/upcoming?userId=123` – volunteer feed with per-user signup status.
-- `POST /api/events` + `POST /api/events/:id/signup` – manager scheduling and helper signups.
+## 📡 API Documentation
+
+### Core Endpoints
+
+**Needs Management**
+- `GET /api/needs` - Get all needs with optional filters (priority, category, bundle, sort, timeSensitiveOnly)
+- `GET /api/needs/:id` - Get specific need details
+- `GET /api/needs/bundle/:bundleTag` - Get needs by bundle tag (basic_food, hygiene_kit, etc.)
+- `GET /api/needs/urgent` - Get urgent needs only
+- `POST /api/needs` - Create new need (manager only)
+- `PUT /api/needs/:id` - Update need (manager only)
+- `DELETE /api/needs/:id` - Delete need (manager only)
+
+**Volunteer Events**
+- `GET /api/events/upcoming?userId=:userId` - Get upcoming events with user signup status
+- `GET /api/events/need/:needId` - Get events for specific need
+- `POST /api/events` - Create new event (manager only)
+- `POST /api/events/:eventId/signup` - Sign up for event (helper)
+- `POST /api/events/:eventId/cancel` - Cancel event signup (helper)
+- `PUT /api/events/:id` - Update event (manager only)
+- `DELETE /api/events/:id` - Delete event (manager only)
+
+**Basket & Funding**
+- `GET /api/basket/:userId` - Get user's basket
+- `POST /api/basket` - Add item to basket
+- `PUT /api/basket/:id` - Update basket item quantity
+- `DELETE /api/basket/:id` - Remove item from basket
+- `POST /api/funding/checkout` - Process checkout (convert basket to funding)
+
+**Authentication**
+- `POST /api/auth/login` - Login/register user (trust-based, username only)
+
+### Query Parameters
+
+**Needs Filtering:**
+- `sort=urgency` - Sort by urgency score (descending)
+- `priority=urgent|high|normal` - Filter by priority level
+- `bundle=basic_food|hygiene_kit|...` - Filter by bundle tag
+- `timeSensitiveOnly=true` - Only needs with deadlines within 7 days
+- `perishable=true` - Only perishable items
+- `service=true` - Only items requiring volunteer service
 
 ## Tech Stack
 - **Backend:** Node.js 18+, Express 5, mysql2 (promise pool), bundled MariaDB for local development.
@@ -167,9 +295,52 @@ Open your browser and go to: **http://localhost:3000**
 - **Database:** MariaDB (bundled) or MySQL 5.7+
 - **Tooling:** Nodemon for backend dev, adm-zip for unpacking local database bundle.
 
+## Alternative Database Setup (Mac/Linux)
+
+The bundled MySQL server is Windows-only. For Mac/Linux users:
+
+### Option 1: Install MySQL/MariaDB Locally
+
+1. **Install MySQL or MariaDB:**
+   - **Mac**: `brew install mysql` or `brew install mariadb`
+   - **Linux**: `sudo apt-get install mysql-server` or `sudo apt-get install mariadb-server`
+
+2. **Start MySQL service:**
+   - **Mac**: `brew services start mysql`
+   - **Linux**: `sudo systemctl start mysql`
+
+3. **Update `backend/.env`:**
+   ```env
+   DB_HOST=localhost
+   DB_USER=root
+   DB_PASSWORD=your_password  # Set your MySQL root password
+   DB_NAME=needs_connect
+   PORT=5000
+   ```
+
+4. **Continue with Step 5** (Initialize Database) below.
+
+### Option 2: Use Docker
+
+1. **Run MySQL in Docker:**
+   ```bash
+   docker run --name needs-connect-db -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=needs_connect -p 3306:3306 -d mysql:8.0
+   ```
+
+2. **Update `backend/.env`:**
+   ```env
+   DB_HOST=localhost
+   DB_USER=root
+   DB_PASSWORD=root
+   DB_NAME=needs_connect
+   PORT=5000
+   ```
+
+3. **Wait 10-15 seconds** for MySQL to start, then continue with Step 5.
+
 ## System Requirements
 
-- **OS**: Windows 10+, macOS 10.15+, or Linux
+- **OS**: Windows 10+ (for bundled database) OR macOS 10.15+/Linux with MySQL installed
 - **RAM**: Minimum 4GB (8GB recommended)
 - **Disk Space**: ~500MB for dependencies + database
 - **Node.js**: v18.0.0 or higher
@@ -184,13 +355,14 @@ Open your browser and go to: **http://localhost:3000**
 
 ### Key Features to Test
 
-1. **Login**: Use `admin` to login as a manager
-2. **Create Need**: Go to Manager → Add Need
-3. **Browse Needs**: Go to Browse to see all needs
+1. **Login**: Use `admin` to login as a manager (or any other username for helper role)
+2. **Create Need**: Manager → Dashboard → Add Need
+3. **Browse Needs**: Go to Browse Needs to see all needs
 4. **Add to Basket**: Click "Add to Basket" on any need
 5. **Checkout**: Go to Basket and complete contribution
-6. **Events**: Manager → Manage Events to schedule volunteer events
-7. **Volunteer**: Helper → Volunteer to sign up for events
+6. **Events**: Manager → Dashboard → Events to schedule volunteer events
+7. **Volunteer**: Helper → Volunteer (in navigation) to sign up for events
+8. **Event Signup**: Helpers can sign up for events, see waitlist status, and cancel signups
 
 ## Troubleshooting
 
@@ -291,12 +463,14 @@ node setup-db.js  # This will recreate the database
 
 ## Important Notes
 
-- **Bundled Database**: The application uses a bundled MariaDB - no separate MySQL installation required
+- **Bundled Database**: The application uses a bundled MariaDB on Windows - no separate MySQL installation required (Windows only)
+- **Mac/Linux Users**: Must install MySQL/MariaDB separately or use Docker (see [Alternative Database Setup](#alternative-database-setup-maclinux))
 - **Local Storage**: All data is stored locally in the database - no external services required
 - **Sample Data**: Load sample data with `npm run seed` (optional)
 - **Payment Buttons**: Payment buttons (Google Pay, Apple Pay, Credit Card) are visual only and not connected to payment processors
 - **Default Manager**: Login with username `admin` to access manager features
 - **Application runs entirely on localhost** - no external services required
+- **Setup Script**: Run `node setup.js` in the project root for automated setup
 
 ## Documentation
 - **[backend/ENV_SETUP.md](./backend/ENV_SETUP.md)**: Environment variables configuration guide

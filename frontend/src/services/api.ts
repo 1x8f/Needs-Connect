@@ -289,13 +289,53 @@ export const deleteEvent = async (eventId: number) => {
 };
 
 /**
- * Sign up for event
- * @param eventId - Event ID
- * @param userId - User ID
- * @returns Success message
+ * Sign up for a volunteer event
+ * 
+ * Automatically handles waitlist when event is at capacity.
+ * Returns status indicating if user is confirmed or waitlisted.
+ * 
+ * @param {number} eventId - ID of the event to sign up for
+ * @param {number} userId - ID of the user signing up
+ * @returns {Promise<Object>} Response object with success status and message
+ * @returns {boolean} success - Whether the signup was successful
+ * @returns {string} status - 'confirmed' or 'waitlist'
+ * @returns {string} message - Human-readable status message
+ * 
+ * @example
+ * const response = await signupForEvent(123, 456);
+ * if (response.success) {
+ *   console.log(response.status); // 'confirmed' or 'waitlist'
+ * }
  */
 export const signupForEvent = async (eventId: number, userId: number) => {
   const response = await fetch(`${API_BASE_URL}/events/${eventId}/signup`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ user_id: userId })
+  });
+  return response.json();
+};
+
+/**
+ * Cancel an existing event signup
+ * 
+ * Removes the user from the event's volunteer list.
+ * If user was confirmed, their slot becomes available for waitlisted users.
+ * 
+ * @param {number} eventId - ID of the event to cancel signup for
+ * @param {number} userId - ID of the user canceling
+ * @returns {Promise<Object>} Response object with success status
+ * @returns {boolean} success - Whether the cancellation was successful
+ * @returns {string} message - Confirmation message
+ * 
+ * @example
+ * const response = await cancelSignup(123, 456);
+ * if (response.success) {
+ *   console.log('Signup cancelled successfully');
+ * }
+ */
+export const cancelSignup = async (eventId: number, userId: number) => {
+  const response = await fetch(`${API_BASE_URL}/events/${eventId}/cancel`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ user_id: userId })

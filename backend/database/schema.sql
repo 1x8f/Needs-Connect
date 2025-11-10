@@ -1,8 +1,29 @@
 -- ============================================
 -- Needs Connect Database Schema
 -- ============================================
--- This schema defines the database structure for the Needs Connect platform
--- which connects helpers with non-profits to fulfill their needs.
+-- 
+-- This schema defines the complete database structure for the Needs Connect platform.
+-- The platform connects community helpers with nonprofit organizations to fulfill
+-- urgent needs and coordinate volunteer efforts.
+--
+-- Database Design Principles:
+-- - Normalized structure to prevent data redundancy
+-- - Foreign key constraints to maintain referential integrity
+-- - Indexes on frequently queried columns for performance
+-- - ENUM types for data validation at the database level
+-- - Timestamps for audit trails
+--
+-- Table Relationships:
+-- users (1) -> (many) needs (via manager_id)
+-- users (1) -> (many) baskets (via user_id)
+-- users (1) -> (many) funding (via user_id)
+-- users (1) -> (many) event_volunteers (via user_id)
+-- needs (1) -> (many) baskets (via need_id)
+-- needs (1) -> (many) funding (via need_id)
+-- needs (1) -> (many) distribution_events (via need_id)
+-- distribution_events (1) -> (many) event_volunteers (via event_id)
+--
+-- ============================================
 
 -- Drop existing tables if they exist (in reverse order of dependencies)
 DROP TABLE IF EXISTS funding;

@@ -15,6 +15,7 @@ import AddNeed from "./pages/AddNeed";
 import EditNeed from "./pages/EditNeed";
 import Events from "./pages/Events";
 import HelperActivity from "./pages/HelperActivity";
+import Volunteer from "./pages/Volunteer";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -39,6 +40,7 @@ const App = () => (
                   <Route path="/edit-need/:id" element={<EditNeed />} />
                   <Route path="/events" element={<Events />} />
                   <Route path="/helper-activity" element={<HelperActivity />} />
+                  <Route path="/volunteer" element={<Volunteer />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>

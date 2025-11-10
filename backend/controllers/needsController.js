@@ -1,24 +1,75 @@
-// Needs Controller
-// Handles all business logic for managing needs (CRUD operations)
+/**
+ * Needs Controller
+ * 
+ * Handles all business logic for managing needs including:
+ * - CRUD operations for needs
+ * - Intelligent urgency score calculation
+ * - Advanced filtering and sorting
+ * - Bundle management
+ * 
+ * The urgency scoring algorithm is a key feature that automatically prioritizes
+ * needs based on multiple factors including deadlines, perishability, inventory
+ * levels, and demand.
+ * 
+ * @module needsController
+ */
 
 const pool = require('../database/db');
 
+// ============================================
+// Constants & Configuration
+// ============================================
+
+/**
+ * Priority weight multipliers for urgency calculation
+ * Higher priority needs get a higher base score
+ */
 const PRIORITY_WEIGHTS = {
   urgent: 60,
   high: 40,
   normal: 20
 };
 
+/**
+ * Priority ordering for sorting (lower number = higher priority)
+ */
 const PRIORITY_ORDER = {
   urgent: 1,
   high: 2,
   normal: 3
 };
 
+/**
+ * Valid bundle tags for grouping related items
+ * Used for filtering and efficient fulfillment
+ */
 const BUNDLE_TAGS = new Set(['basic_food', 'winter_clothing', 'hygiene_kit', 'cleaning_supplies', 'beautification', 'other']);
 
+/**
+ * Valid organization types for categorization
+ */
 const VALID_ORG_TYPES = ['food_bank', 'animal_shelter', 'hospital', 'school', 'homeless_shelter', 'disaster_relief', 'other'];
 
+// ============================================
+// Urgency Scoring Algorithm
+// ============================================
+
+/**
+ * Calculates urgency score for a need based on multiple factors
+ * 
+ * Scoring Formula:
+ * - Base Priority: 20-60 points (normal/high/urgent)
+ * - Deadline Proximity: 0-35 points (based on days until deadline)
+ * - Low Inventory: 0-10 points (if <25% remaining)
+ * - Perishability: 0-15 points (if item is perishable)
+ * - Demand: 0-25 points (based on request count, capped at 25)
+ * - Service Requirement: 0-10 points (if volunteer service needed)
+ * 
+ * Maximum possible score: 155 points
+ * 
+ * @param {Object} need - Need object with all relevant fields
+ * @returns {number} Calculated urgency score (higher = more urgent)
+ */
 const calculateUrgencyScore = (need) => {
   const today = new Date();
   const basePriority = PRIORITY_WEIGHTS[need.priority] || 10;

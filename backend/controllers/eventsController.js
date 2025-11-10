@@ -1,9 +1,48 @@
+/**
+ * Events Controller
+ * 
+ * Handles all business logic for volunteer event management including:
+ * - Creating and managing distribution events
+ * - Volunteer signup and cancellation
+ * - Event capacity and waitlist management
+ * - Event filtering and querying
+ * 
+ * @module eventsController
+ */
+
 const pool = require('../database/db');
 
+// ============================================
+// Constants & Configuration
+// ============================================
+
+/**
+ * Valid event types that can be scheduled
+ * - delivery: Delivery of goods to recipients
+ * - cleanup: Community cleanup activities
+ * - kit_build: Assembling care packages/kits
+ * - distribution: Distribution events at locations
+ */
 const EVENT_TYPES = new Set(['delivery', 'cleanup', 'kit_build', 'distribution']);
+
+/**
+ * Valid bundle tags for needs
+ * Used for filtering and grouping related items
+ */
 const BUNDLE_TAG_SET = ['basic_food', 'winter_clothing', 'hygiene_kit', 'cleaning_supplies', 'beautification', 'other'];
 const BUNDLE_TAGS = new Set(BUNDLE_TAG_SET);
 
+// ============================================
+// Helper Functions
+// ============================================
+
+/**
+ * Normalizes event data from database to consistent format
+ * Calculates remaining slots and user status information
+ * 
+ * @param {Object} event - Raw event data from database
+ * @returns {Object} Normalized event with computed fields
+ */
 const normalizeEvent = (event) => {
   const volunteer_slots = event.volunteer_slots !== null ? Number(event.volunteer_slots) : 0;
   const confirmed_count = Number(event.confirmed_count || 0);
@@ -22,6 +61,29 @@ const normalizeEvent = (event) => {
   };
 };
 
+// ============================================
+// Controller Functions
+// ============================================
+
+/**
+ * Create a new volunteer event
+ * 
+ * Allows managers to schedule events for distributing fulfilled needs.
+ * Validates all input data and ensures the associated need exists.
+ * 
+ * @route POST /api/events
+ * @access Manager only (should be protected in production)
+ * 
+ * @param {number} req.body.need_id - ID of the need this event is for
+ * @param {string} req.body.event_type - Type of event (delivery, cleanup, kit_build, distribution)
+ * @param {string} req.body.event_start - Start date/time (ISO format)
+ * @param {string} req.body.event_end - End date/time (optional, ISO format)
+ * @param {string} req.body.location - Event location (optional)
+ * @param {number} req.body.volunteer_slots - Number of volunteer slots (optional, default 0)
+ * @param {string} req.body.notes - Additional event notes (optional)
+ * 
+ * @returns {Object} Created event object with computed fields
+ */
 const createEvent = async (req, res) => {
   try {
     const {
