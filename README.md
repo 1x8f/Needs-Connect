@@ -4,7 +4,7 @@
 
 Needs Connect is a full-stack web application designed for the RIT Software Engineering Competition. It enables nonprofit managers to post urgent needs (food, clothing, supplies, services) while allowing community helpers to browse, fund, and volunteer for these needs. The platform features intelligent urgency scoring, bundle management, and a complete volunteer event coordination system.
 
-## 🎯 Project Overview
+## Project Overview
 
 This application solves the critical problem of connecting community resources with nonprofit organizations that need them most. Key innovations include:
 
@@ -13,7 +13,7 @@ This application solves the critical problem of connecting community resources w
 - **Volunteer Coordination**: Complete event management system with waitlist handling and capacity tracking
 - **Real-time Dashboard**: Managers can track fulfillment progress and coordinate volunteer efforts
 
-## 🏗️ Architecture
+## Architecture
 
 The application follows a clean separation of concerns:
 
@@ -22,7 +22,7 @@ The application follows a clean separation of concerns:
 - **Database**: Normalized MySQL schema with proper foreign key relationships and indexes for performance
 - **Authentication**: Trust-based system (suitable for competition prototype) with role-based access control
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### Prerequisites
 
@@ -36,7 +36,7 @@ The application follows a clean separation of concerns:
 - At least 500MB free disk space
 - 4GB RAM minimum (8GB recommended)
 
-### ⚡ Automated Setup (Recommended)
+### Automated Setup (Recommended)
 
 The easiest way to set up the project:
 
@@ -52,7 +52,7 @@ This script will:
 
 **After running setup.js, continue with Step 4 below.**
 
-### 📋 Manual Setup
+### Manual Setup
 
 If you prefer to set up manually or the automated script doesn't work:
 
@@ -81,7 +81,7 @@ PORT=5000
 
 **Note**: These are the default values for the bundled MariaDB. If you have your own MySQL server, update the values accordingly.
 
-**💡 Tip**: The automated setup script (`node setup.js`) creates this file for you!
+**Tip**: The automated setup script (`node setup.js`) creates this file for you!
 
 #### Step 3: Verify Setup (Optional)
 
@@ -92,9 +92,9 @@ npm run verify
 
 This checks that all dependencies are installed and environment variables are configured correctly.
 
-### 🗄️ Database Setup
+###  Database Setup
 
-**⚠️ Important**: The bundled MySQL server only works on **Windows**. For Mac/Linux, see [Alternative Database Setup](#alternative-database-setup-maclinux) below.
+** Important**: The bundled MySQL server only works on **Windows**. For Mac/Linux, see [Alternative Database Setup](#alternative-database-setup-maclinux) below.
 
 #### Step 4: Start Database (Terminal 1)
 
@@ -188,7 +188,7 @@ Open your browser and go to: **http://localhost:3000**
 - Backend API: http://localhost:5000/api
 - Test endpoint: http://localhost:5000/api/test
 
-## ✨ Key Features
+## Key Features
 
 ### Priority & Time-Sensitive Needs Management (Required Feature - 10%)
 
@@ -247,7 +247,7 @@ The system automatically computes an urgency score for each need based on multip
 4. Helpers see prioritized needs under `Browse Needs` (sorted by urgency score) and can drill into bundles (food, clothing, hygiene, beautification).
 5. `Volunteer` page (accessible from navigation) lists scheduled events, remaining slots, and status (confirmed/waitlist/cancelled) for the signed-in helper.
 
-## 📡 API Documentation
+##  API Documentation
 
 ### Core Endpoints
 
